@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 defaults dark mode to prefers-color-scheme. This variant makes it
+   class-driven instead, so a theme toggle can override the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Anything defined here becomes a Tailwind utility automatically:
+   --color-profit generates bg-profit / text-profit / border-profit, and so on. */
+@theme {
+  --color-surface: oklch(0.99 0.002 260);
+  --color-surface-raised: oklch(1 0 0);
+  --color-border-subtle: oklch(0.91 0.005 260);
+  --color-content: oklch(0.22 0.01 260);
+  --color-content-muted: oklch(0.53 0.012 260);
+  --color-brand: oklch(0.55 0.16 260);
+  --color-brand-contrast: oklch(0.99 0 0);
+
+  /* Semantic P&L colors, kept separate from raw green/red so they can be
+     retuned once (e.g. for colour-blind palettes) without touching components. */
+  --color-profit: oklch(0.62 0.15 155);
+  --color-loss: oklch(0.58 0.19 25);
+}
+
+:root.dark {
+  --color-surface: oklch(0.19 0.012 260);
+  --color-surface-raised: oklch(0.24 0.014 260);
+  --color-border-subtle: oklch(0.32 0.015 260);
+  --color-content: oklch(0.95 0.005 260);
+  --color-content-muted: oklch(0.68 0.012 260);
+  --color-brand: oklch(0.7 0.15 260);
+  --color-brand-contrast: oklch(0.18 0.01 260);
+  --color-profit: oklch(0.72 0.16 155);
+  --color-loss: oklch(0.68 0.19 25);
+}
+
+body {
+  @apply bg-surface text-content antialiased;
+}

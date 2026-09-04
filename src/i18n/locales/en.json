@@ -1,0 +1,41 @@
+{
+  "app": {
+    "title": "PnL Master",
+    "tagline": "Track profit and loss without the spreadsheet"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "uk": "Ukrainian"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "dashboard": {
+    "heading": "Overview",
+    "netResult": "Net result",
+    "income": "Income",
+    "expenses": "Expenses",
+    "entryCount_one": "{{count}} entry",
+    "entryCount_other": "{{count}} entries"
+  },
+  "transactions": {
+    "heading": "Transactions",
+    "empty": "No transactions yet.",
+    "columnDate": "Date",
+    "columnLabel": "Description",
+    "columnAmount": "Amount"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "That route does not exist.",
+    "goHome": "Back to dashboard"
+  }
+}

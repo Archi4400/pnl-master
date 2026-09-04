@@ -1,0 +1,43 @@
+{
+  "app": {
+    "title": "PnL Master",
+    "tagline": "Облік прибутків і збитків без таблиць"
+  },
+  "nav": {
+    "dashboard": "Огляд",
+    "transactions": "Операції"
+  },
+  "language": {
+    "label": "Мова",
+    "en": "Англійська",
+    "uk": "Українська"
+  },
+  "theme": {
+    "toggle": "Змінити тему"
+  },
+  "dashboard": {
+    "heading": "Огляд",
+    "netResult": "Чистий результат",
+    "income": "Доходи",
+    "expenses": "Витрати",
+    "entryCount_one": "{{count}} запис",
+    "entryCount_few": "{{count}} записи",
+    "entryCount_many": "{{count}} записів",
+    "entryCount_other": "{{count}} записів"
+  },
+  "transactions": {
+    "heading": "Операції",
+    "empty": "Операцій ще немає.",
+    "columnDate": "Дата",
+    "columnLabel": "Опис",
+    "columnAmount": "Сума"
+  },
+  "common": {
+    "loading": "Завантаження…",
+    "error": "Щось пішло не так.",
+    "retry": "Спробувати ще раз",
+    "notFoundTitle": "Сторінку не знайдено",
+    "notFoundBody": "Такого маршруту не існує.",
+    "goHome": "Повернутись до огляду"
+  }
+}
