@@ -1,11 +1,6 @@
 {
   "app": {
-    "title": "PnL Master",
-    "tagline": "Облік прибутків і збитків без таблиць"
-  },
-  "nav": {
-    "dashboard": "Огляд",
-    "transactions": "Операції"
+    "title": "PnL Master"
   },
   "language": {
     "label": "Мова",
@@ -15,29 +10,21 @@
   "theme": {
     "toggle": "Змінити тему"
   },
-  "dashboard": {
-    "heading": "Огляд",
-    "netResult": "Чистий результат",
-    "income": "Доходи",
-    "expenses": "Витрати",
-    "entryCount_one": "{{count}} запис",
-    "entryCount_few": "{{count}} записи",
-    "entryCount_many": "{{count}} записів",
-    "entryCount_other": "{{count}} записів"
-  },
-  "transactions": {
-    "heading": "Операції",
-    "empty": "Операцій ще немає.",
-    "columnDate": "Дата",
-    "columnLabel": "Опис",
-    "columnAmount": "Сума"
+  "calculator": {
+    "heading": "Калькулятор PnL",
+    "subheading": "Усі поля редаговані — зміни одне, решта перерахується.",
+    "amount": "Сума",
+    "openPrice": "Ціна входу",
+    "closePrice": "Ціна виходу",
+    "leverage": "Кредитне плече",
+    "leverageHint": "Від {{min}} до {{max}}",
+    "pnl": "Прибуток / збиток",
+    "pnlHint": "Введи бажаний результат — ціна виходу підрахується під нього.",
+    "reset": "Скинути"
   },
   "common": {
-    "loading": "Завантаження…",
-    "error": "Щось пішло не так.",
-    "retry": "Спробувати ще раз",
     "notFoundTitle": "Сторінку не знайдено",
     "notFoundBody": "Такого маршруту не існує.",
-    "goHome": "Повернутись до огляду"
+    "goHome": "Повернутись до калькулятора"
   }
 }

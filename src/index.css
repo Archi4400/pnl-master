@@ -1,38 +1,144 @@
 @import 'tailwindcss';
 
-/* Tailwind v4 defaults dark mode to prefers-color-scheme. This variant makes it
-   class-driven instead, so a theme toggle can override the OS setting. */
+/* Class-driven dark mode instead of the prefers-color-scheme default, so the
+   theme toggle can override the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens. Anything defined here becomes a Tailwind utility automatically:
-   --color-profit generates bg-profit / text-profit / border-profit, and so on. */
 @theme {
-  --color-surface: oklch(0.99 0.002 260);
-  --color-surface-raised: oklch(1 0 0);
-  --color-border-subtle: oklch(0.91 0.005 260);
-  --color-content: oklch(0.22 0.01 260);
-  --color-content-muted: oklch(0.53 0.012 260);
-  --color-brand: oklch(0.55 0.16 260);
-  --color-brand-contrast: oklch(0.99 0 0);
+  /* Raw palette. */
+  --color-cream: #f8f6f0;
+  --color-paper: #ffffff;
+  --color-ink: #141414;
+  --color-ink-soft: #57544c;
+  --color-ink-faint: #8a867b;
+  --color-lime: #c6ff00;
+  --color-lime-ink: #1b2200;
+  --color-ink-block: #131311;
 
-  /* Semantic P&L colors, kept separate from raw green/red so they can be
-     retuned once (e.g. for colour-blind palettes) without touching components. */
-  --color-profit: oklch(0.62 0.15 155);
-  --color-loss: oklch(0.58 0.19 25);
+  /* Semantic layer. These resolve through the variables below, which swap per
+     theme; components should only ever reference this layer.
+     "invert" is the reference's signature move: a block that flips to the
+     opposite ground so it reads as a slab cut out of the page. */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-invert: var(--surface-invert);
+  --color-content: var(--content);
+  --color-content-muted: var(--content-muted);
+  --color-content-faint: var(--content-faint);
+  --color-content-invert: var(--content-invert);
+  --color-line: var(--line);
+
+  /* Result colours. Lime is the accent everywhere, but as a *value* colour it
+     only works on the dark ground — on white it measures 1.19:1 and vanishes.
+     So profit and loss both swap per theme, tuned to clear 4.5:1 either way. */
+  --color-profit: var(--profit);
+  --color-loss: var(--loss);
+
+  --radius-card: 24px;
+  --radius-brand: 22px;
+
+  --font-sans: 'Neue Montreal', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --animate-rise: rise 0.55s var(--ease-brand) both;
+  --animate-marquee: marquee 34s linear infinite;
+  --animate-pulse-dot: pulse-dot 2.4s var(--ease-brand) infinite;
+}
+
+/* The page is cream-first, matching the reference. Dark is the alternate. */
+:root {
+  --surface: #f8f6f0;
+  --surface-raised: #fffdf7;
+  --surface-invert: #131311;
+  --content: #141414;
+  --content-muted: #57544c;
+  --content-faint: #8a867b;
+  --content-invert: #f8f6f0;
+  --line: rgba(20, 20, 20, 0.14);
+  --profit: #5c7a00; /* 4.95:1 on white, 4.58:1 on cream */
+  --loss: #c7350f; /* 5.32:1 on white */
 }
 
 :root.dark {
-  --color-surface: oklch(0.19 0.012 260);
-  --color-surface-raised: oklch(0.24 0.014 260);
-  --color-border-subtle: oklch(0.32 0.015 260);
-  --color-content: oklch(0.95 0.005 260);
-  --color-content-muted: oklch(0.68 0.012 260);
-  --color-brand: oklch(0.7 0.15 260);
-  --color-brand-contrast: oklch(0.18 0.01 260);
-  --color-profit: oklch(0.72 0.16 155);
-  --color-loss: oklch(0.68 0.19 25);
+  --surface: #131311;
+  --surface-raised: #1c1b19;
+  --surface-invert: #f8f6f0;
+  --content: #f8f6f0;
+  --content-muted: #a9a69c;
+  --content-faint: #7a776e;
+  --content-invert: #141414;
+  --line: rgba(248, 246, 240, 0.16);
+  --profit: #c6ff00; /* 15.68:1 on ink-block */
+  --loss: #ff6b4a; /* 6.60:1 on ink-block */
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  /* The track holds two identical copies, so -50% lands exactly on the seam. */
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
 }
 
 body {
-  @apply bg-surface text-content antialiased;
+  @apply bg-surface text-content;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+  overflow-x: hidden;
+}
+
+/* Strip the spinner arrows: they steal width from the number fields and invite
+   click-stepping on values that are meant to be typed. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Honour the OS setting: keep the page readable but stop everything moving. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

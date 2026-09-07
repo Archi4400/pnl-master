@@ -1,11 +1,6 @@
 {
   "app": {
-    "title": "PnL Master",
-    "tagline": "Track profit and loss without the spreadsheet"
-  },
-  "nav": {
-    "dashboard": "Dashboard",
-    "transactions": "Transactions"
+    "title": "PnL Master"
   },
   "language": {
     "label": "Language",
@@ -15,27 +10,21 @@
   "theme": {
     "toggle": "Toggle theme"
   },
-  "dashboard": {
-    "heading": "Overview",
-    "netResult": "Net result",
-    "income": "Income",
-    "expenses": "Expenses",
-    "entryCount_one": "{{count}} entry",
-    "entryCount_other": "{{count}} entries"
-  },
-  "transactions": {
-    "heading": "Transactions",
-    "empty": "No transactions yet.",
-    "columnDate": "Date",
-    "columnLabel": "Description",
-    "columnAmount": "Amount"
+  "calculator": {
+    "heading": "PnL calculator",
+    "subheading": "Every field is editable — change one and the rest follow.",
+    "amount": "Amount",
+    "openPrice": "Open price",
+    "closePrice": "Close price",
+    "leverage": "Leverage",
+    "leverageHint": "From {{min}} to {{max}}",
+    "pnl": "Profit / loss",
+    "pnlHint": "Type a target here and the close price is solved for it.",
+    "reset": "Reset"
   },
   "common": {
-    "loading": "Loading…",
-    "error": "Something went wrong.",
-    "retry": "Try again",
     "notFoundTitle": "Page not found",
     "notFoundBody": "That route does not exist.",
-    "goHome": "Back to dashboard"
+    "goHome": "Back to the calculator"
   }
 }

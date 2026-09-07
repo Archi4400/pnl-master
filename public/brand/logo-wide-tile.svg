@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 64" role="img" aria-labelledby="lwt">
+  <title id="lwt">PnL Master with tiled icon</title>
+  <rect x="0" y="2" width="56" height="56" rx="13" fill="#1C1B19"
+        stroke="#F8F6F0" stroke-opacity="0.1"/>
+  <g transform="translate(14.5 13) scale(0.875)">
+    <rect x="0" y="0" width="8" height="36" fill="#F8F6F0"/>
+    <path d="M4 4 H16 a10 10 0 0 1 0 20 H4" fill="none" stroke="#C6FF00" stroke-width="8"/>
+  </g>
+  <text x="74" y="31" dominant-baseline="central"
+        font-family="'Neue Montreal','Helvetica Neue',Arial,sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5" fill="#C6FF00">PnL</text>
+  <text x="148" y="31" dominant-baseline="central"
+        font-family="'Neue Montreal','Helvetica Neue',Arial,sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5" fill="#F8F6F0">Master</text>
+  <rect x="74" y="50" width="181" height="7" fill="#C6FF00"/>
+</svg>

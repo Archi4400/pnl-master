@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="fvs">
+  <title id="fvs">PnL Master</title>
+  <rect width="64" height="64" fill="#131311"/>
+  <g transform="translate(17 14)">
+    <rect x="0" y="0" width="8" height="36" fill="#F8F6F0"/>
+    <path d="M4 4 H16 a10 10 0 0 1 0 20 H4" fill="none" stroke="#C6FF00" stroke-width="8"/>
+  </g>
+</svg>

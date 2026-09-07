@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 64" role="img" aria-labelledby="lw">
+  <title id="lw">PnL Master</title>
+  <g transform="translate(0 8) scale(1.2222)">
+    <rect x="0" y="0" width="8" height="36" fill="#F8F6F0"/>
+    <path d="M4 4 H16 a10 10 0 0 1 0 20 H4" fill="none" stroke="#C6FF00" stroke-width="8"/>
+  </g>
+  <text x="53" y="31" dominant-baseline="central"
+        font-family="'Neue Montreal','Helvetica Neue',Arial,sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5" fill="#C6FF00">PnL</text>
+  <text x="127" y="31" dominant-baseline="central"
+        font-family="'Neue Montreal','Helvetica Neue',Arial,sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5" fill="#F8F6F0">Master</text>
+  <!-- Rule runs under the whole wordmark. Its length is estimated from font
+       metrics; the React Logo component measures the real text box instead. -->
+  <rect x="53" y="50" width="181" height="7" fill="#C6FF00"/>
+</svg>

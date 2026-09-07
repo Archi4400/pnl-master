@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 64" role="img" aria-labelledby="lwl">
+  <title id="lwl">PnL Master on cream</title>
+  <rect x="0" y="2" width="56" height="56" rx="13" fill="#131311"/>
+  <g transform="translate(14.5 13) scale(0.875)">
+    <rect x="0" y="0" width="8" height="36" fill="#F8F6F0"/>
+    <path d="M4 4 H16 a10 10 0 0 1 0 20 H4" fill="none" stroke="#C6FF00" stroke-width="8"/>
+  </g>
+  <text x="74" y="31" dominant-baseline="central"
+        font-family="'Neue Montreal','Helvetica Neue',Arial,sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5" fill="#141414">PnL Master</text>
+  <!-- On cream the rule keeps the lime, but at 1.10:1 it reads as a soft band
+       rather than a crisp line. It is decorative, so this is a look, not a defect. -->
+  <rect x="74" y="50" width="181" height="7" fill="#C6FF00"/>
+</svg>

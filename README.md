@@ -38,7 +38,7 @@ npm run test:coverage # coverage report
 src/
   app/          router + layouts (route tree lives here)
   components/   shared components; components/ui holds styled primitives
-  features/     vertical slices: schema + api + queries per domain
+  features/     vertical slices, one folder per domain
   i18n/         i18next setup and locale JSON
   lib/          framework-agnostic helpers (cn, query client)
   pages/        route-level components
@@ -52,7 +52,8 @@ src/
 - **`useMemo` is `computed`**, but it is opt-in — React re-runs the whole component
   function on every render and does not track dependencies for you.
 - **TanStack Query replaces a store for server state.** Two components using the
-  same `queryKey` share one request and one cache entry.
+  same `queryKey` share one request and one cache entry. Nothing uses it yet —
+  the calculator is pure client-side maths.
 - **`<Outlet />` is `<router-view>`**, and `NavLink`'s `isActive` replaces
   `router-link-active`.
 - **There is no `v-model`.** Inputs are controlled via value + onChange, which is
@@ -63,9 +64,14 @@ src/
 ## Theming
 
 Design tokens are declared in `src/index.css` under `@theme`. Anything defined
-there becomes a utility automatically — `--color-profit` yields `text-profit`,
-`bg-profit`, `border-profit`. Dark mode is class-driven via a `@custom-variant`,
+there becomes a utility automatically — `--color-lime` yields `text-lime`,
+`bg-lime`, `border-lime`. Raw palette values sit alongside a semantic layer
+(`surface`, `content`, `line`) that swaps per theme; components should only ever
+reference the semantic names. Dark mode is class-driven via a `@custom-variant`,
 toggled by `ThemeToggle`.
+
+Brand assets live in `public/brand/`; the logo is also a component at
+`src/components/logo.tsx`.
 
 ## Convention
 
