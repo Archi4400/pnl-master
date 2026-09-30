@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { SectionLabel } from '@/components/ui/section-label'
-import { formatNumber } from '@/features/calculator/math'
+import { SignedValue } from '@/components/ui/signed-value'
 import { CoinIcon } from '@/features/market/coin-icon'
-import { cn } from '@/lib/utils'
+import { useFormat } from '@/hooks/use-format'
 
 import { describeSnapshot } from './describe'
 import { removeSaved, type SavedEntry } from './storage'
@@ -18,13 +18,14 @@ type SavedListProps = {
 export function SavedList({ onLoad }: SavedListProps) {
   const { t, i18n } = useTranslation()
   const saved = useSaved()
+  const format = useFormat()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-5 pb-16" aria-labelledby="saved-heading">
+    <section className="mx-auto w-full max-w-6xl px-5 pb-16" aria-labelledby="saved-heading">
       <div className="flex items-baseline justify-between gap-4">
         <SectionLabel>
           <span id="saved-heading">{t('saved.heading')}</span>
@@ -58,16 +59,9 @@ export function SavedList({ onLoad }: SavedListProps) {
                     </p>
                   </div>
                   {entry.pnl !== null ? (
-                    <span
-                      className={cn(
-                        'font-semibold tabular-nums',
-                        entry.pnl > 0 && 'text-profit',
-                        entry.pnl < 0 && 'text-loss',
-                      )}
-                    >
-                      {entry.pnl > 0 ? '+' : ''}
-                      {formatNumber(entry.pnl, 2)}
-                    </span>
+                    <SignedValue value={entry.pnl} className="font-semibold tabular-nums">
+                      {format.signed(entry.pnl)}
+                    </SignedValue>
                   ) : null}
                 </div>
 

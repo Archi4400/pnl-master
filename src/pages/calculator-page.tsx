@@ -6,8 +6,8 @@ import { Marker } from '@/components/ui/marker'
 import { Marquee } from '@/components/ui/marquee'
 import { SectionLabel } from '@/components/ui/section-label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { FuturesCalculator } from '@/features/calculator/futures-calculator'
-import { useCalculator } from '@/features/calculator/use-calculator'
+import { FuturesCalculator } from '@/features/futures/futures-calculator'
+import { useFuturesCalculator } from '@/features/futures/use-futures-calculator'
 import { InfoSection } from '@/features/info/info-section'
 import { AssetPicker } from '@/features/market/asset-picker'
 import { useAsset } from '@/features/market/use-asset'
@@ -29,7 +29,7 @@ export function CalculatorPage() {
   const [fromLink] = useState(() => decodeSnapshot(searchParams))
   const [mode, setMode] = useState<Mode>(() => fromLink?.mode ?? readMode(searchParams))
   const [asset, setAsset] = useAsset(fromLink?.asset)
-  const futures = useCalculator(fromLink?.mode === 'futures' ? fromLink.futures : undefined)
+  const futures = useFuturesCalculator(fromLink?.mode === 'futures' ? fromLink.futures : undefined)
   const spot = useSpotCalculator(fromLink?.mode === 'spot' ? fromLink.spot : undefined)
 
   const futuresSnapshot: Snapshot = { mode: 'futures', asset, futures: futures.inputs }
@@ -50,14 +50,14 @@ export function CalculatorPage() {
 
   return (
     <div className="flex flex-col">
-      <section className="mx-auto w-full max-w-5xl px-5 pt-12 pb-10 sm:pt-20">
+      <section className="mx-auto w-full max-w-6xl px-5 pt-12 pb-10 sm:pt-20">
         <div className="animate-rise">
           <SectionLabel index="00">
             {t('calculator.eyebrow')} · {t(`mode.${mode}`)}
           </SectionLabel>
         </div>
 
-        <div className="mt-6 grid gap-x-12 gap-y-6 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <h1
             className="animate-rise text-[clamp(2.4rem,6vw,4.2rem)] leading-[0.98] font-medium tracking-[-0.035em] text-balance"
             style={{ animationDelay: '60ms' }}
@@ -77,7 +77,7 @@ export function CalculatorPage() {
 
       {/* The tool itself. scroll-mt clears the sticky header when a saved
           calculation scrolls back up to it. */}
-      <section ref={toolRef} className="mx-auto w-full max-w-5xl scroll-mt-24 px-5 pb-16">
+      <section ref={toolRef} className="mx-auto w-full max-w-6xl scroll-mt-24 px-5 pb-16">
         <div className="animate-rise flex flex-col gap-6" style={{ animationDelay: '180ms' }}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <SegmentedControl

@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 
+import { parseNumber } from '@/lib/number'
+
 import {
   FUTURES_INITIAL,
   futuresFromInputs,
@@ -10,15 +12,19 @@ import {
   type FuturesField,
   type FuturesInputs,
 } from './futures-state'
-import { clampLeverage, LEVERAGE_DEFAULT, parseNumber, type Direction } from './math'
-
-export type { FuturesField as CalculatorField } from './futures-state'
+import {
+  clampLeverage,
+  isPnlReachable,
+  LEVERAGE_DEFAULT,
+  pnlAtZeroPrice,
+  type Direction,
+} from './math'
 
 /**
  * React binding for the futures form. All the rules live in futures-state.ts;
  * this only holds the state and hands out stable callbacks.
  */
-export function useCalculator(initial?: FuturesInputs) {
+export function useFuturesCalculator(initial?: FuturesInputs) {
   const [state, setState] = useState(() => (initial ? futuresFromInputs(initial) : FUTURES_INITIAL))
 
   const setField = useCallback((field: FuturesField, raw: string) => {
@@ -50,10 +56,18 @@ export function useCalculator(initial?: FuturesInputs) {
     leverage: clampLeverage(parseNumber(values.leverage) ?? LEVERAGE_DEFAULT),
   }
 
+  // A typed PnL past what a zero price gives has no close price at all; the
+  // field keeps the old close price and the UI says why instead.
+  const position = { amount: parsed.amount, leverage: parsed.leverage, direction }
+  const typedPnl = parseNumber(values.pnl)
+  const pnlReachable = typedPnl === null || isPnlReachable(position, typedPnl)
+
   return {
     values,
     direction,
     parsed,
+    pnlReachable,
+    pnlLimit: pnlAtZeroPrice(position),
     inputs: futuresToInputs(state),
     setField,
     setDirection,
@@ -63,4 +77,4 @@ export function useCalculator(initial?: FuturesInputs) {
   }
 }
 
-export type FuturesCalculator = ReturnType<typeof useCalculator>
+export type FuturesCalculatorState = ReturnType<typeof useFuturesCalculator>

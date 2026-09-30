@@ -1,14 +1,14 @@
+import { formatNumber, parseNumber } from '@/lib/number'
+import { syncPair, type PairKeys, type PairSide } from '@/lib/pair'
+
 import {
   clampLeverage,
   computeClosePrice,
   computePnl,
   DIRECTION_DEFAULT,
-  formatNumber,
   LEVERAGE_DEFAULT,
-  parseNumber,
   type Direction,
 } from './math'
-import { syncPair, type PairKeys, type PairSide } from './pair'
 
 /**
  * The futures form as plain data plus pure transitions, kept out of the hook so

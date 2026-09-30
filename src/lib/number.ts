@@ -1,84 +1,8 @@
-export const LEVERAGE_MIN = 1
 /**
- * Where the slider tops out. Typed leverage may go past it — the slider then
- * just sits full — because the range that matters for dragging is far below the
- * extremes a few exchanges offer.
+ * Numbers as typed into, and shown by, the calculators' fields: parsing,
+ * the keystroke gate, arrow stepping and display. Shared by every feature, so it
+ * lives here rather than in any one calculator.
  */
-export const LEVERAGE_SLIDER_MAX = 200
-export const LEVERAGE_DEFAULT = 1
-
-export type Direction = 'long' | 'short'
-
-export const DIRECTION_DEFAULT: Direction = 'long'
-
-export type Position = {
-  amount: number
-  openPrice: number
-  closePrice: number
-  leverage: number
-  direction: Direction
-}
-
-/**
- * Profit/loss of a position.
- *
- *   units = amount * leverage / openPrice
- *   pnl   = units * priceMove
- *
- * The only thing direction changes is the sign of the move: a long earns when
- * the price rises, a short when it falls. Returns null when the inputs cannot
- * describe a position — an open price of zero has no units to trade.
- */
-export function computePnl({
-  amount,
-  openPrice,
-  closePrice,
-  leverage,
-  direction,
-}: Position): number | null {
-  if (!Number.isFinite(amount) || !Number.isFinite(openPrice) || !Number.isFinite(closePrice)) {
-    return null
-  }
-  if (openPrice <= 0) return null
-  const move = direction === 'long' ? closePrice - openPrice : openPrice - closePrice
-  return (amount * leverage * move) / openPrice
-}
-
-/**
- * The inverse: which close price produces a given profit/loss.
- *
- * Editing the PnL field solves for the close price, because the other three
- * inputs describe a position the user has already opened — only the exit is
- * still open to question.
- */
-export function computeClosePrice(
-  { amount, openPrice, leverage, direction }: Omit<Position, 'closePrice'>,
-  pnl: number,
-): number | null {
-  if (!Number.isFinite(amount) || !Number.isFinite(openPrice) || !Number.isFinite(pnl)) {
-    return null
-  }
-  if (openPrice <= 0) return null
-  const notional = amount * leverage
-  // With nothing at stake every close price yields the same zero PnL, so the
-  // question has no single answer.
-  if (notional === 0) return null
-  const delta = (pnl / notional) * openPrice
-  return direction === 'long' ? openPrice + delta : openPrice - delta
-}
-
-/**
- * Leverage has a floor of 1 and no ceiling.
- *
- * The floor is 1 rather than 0 because a leverage of 0 zeroes the position: PnL
- * is stuck at 0 and the close price can no longer be solved from it, which would
- * silently break the field. Only the slider has an upper end
- * (LEVERAGE_SLIDER_MAX); a typed value is taken as it is.
- */
-export function clampLeverage(value: number): number {
-  if (!Number.isFinite(value)) return LEVERAGE_DEFAULT
-  return Math.max(LEVERAGE_MIN, value)
-}
 
 /** Parse a typed value, accepting a comma as the decimal separator. */
 export function parseNumber(raw: string): number | null {
@@ -151,4 +75,45 @@ export function stepNumber(
 export function formatNumber(value: number, decimals: number): string {
   if (!Number.isFinite(value)) return ''
   return String(Number(value.toFixed(decimals)))
+}
+
+/** What a readout shows when there is nothing to compute yet. */
+export const NO_VALUE = '—'
+
+/** A true minus sign: it lines up with "+" in tabular figures, a hyphen does not. */
+const MINUS = '−'
+
+/**
+ * An amount for reading, grouped for the locale ("1,500.5" / "1 500,5"). Field
+ * values stay ungrouped via formatNumber, since grouping would break typing.
+ */
+export function formatAmount(value: number, locale?: string, maxDecimals = 2): string {
+  if (!Number.isFinite(value)) return NO_VALUE
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: maxDecimals })
+    .format(value)
+    .replace('-', MINUS)
+}
+
+/**
+ * A price for reading: grouped digits, and precision that fits the coin — two
+ * decimals for BTC, four significant digits for a coin worth a fraction of a
+ * cent, where two decimals would print 0.00.
+ */
+export function formatPrice(price: number, locale?: string): string {
+  if (!Number.isFinite(price)) return NO_VALUE
+  const options: Intl.NumberFormatOptions =
+    price >= 1000
+      ? { maximumFractionDigits: 2 }
+      : price >= 1
+        ? { maximumFractionDigits: 4 }
+        : { maximumSignificantDigits: 4 }
+  return new Intl.NumberFormat(locale, options).format(price)
+}
+
+/** A gain or loss with its sign always shown: "+300", "−12.5". */
+export function formatSigned(value: number, locale?: string, maxDecimals = 2): string {
+  const text = formatAmount(Math.abs(value), locale, maxDecimals)
+  const rounded = Number(value.toFixed(maxDecimals))
+  if (rounded === 0) return text
+  return `${rounded > 0 ? '+' : MINUS}${text}`
 }

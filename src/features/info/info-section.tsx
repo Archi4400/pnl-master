@@ -17,7 +17,7 @@ export function InfoSection() {
   ]
 
   return (
-    <section ref={ref} className="mx-auto w-full max-w-5xl px-5 py-20">
+    <section ref={ref} className="mx-auto w-full max-w-6xl px-5 py-20">
       <SectionLabel index="03">{t('info.eyebrow')}</SectionLabel>
 
       <div className="mt-6 grid gap-x-12 gap-y-5 lg:grid-cols-[1.15fr_1fr]">

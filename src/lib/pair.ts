@@ -1,4 +1,4 @@
-import { formatNumber, parseNumber } from './math'
+import { formatNumber, parseNumber } from './number'
 
 /**
  * One amount shown twice: in the quote currency (USDT) and in units of the

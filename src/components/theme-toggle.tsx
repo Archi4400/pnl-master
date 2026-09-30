@@ -6,9 +6,14 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 
 type Theme = 'light' | 'dark'
 
+/** Mirrors the inline script in index.html, which applies it before first paint. */
 function readInitialTheme(): Theme {
-  const stored = localStorage.getItem('theme')
-  if (stored === 'light' || stored === 'dark') return stored
+  try {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch {
+    // Storage can be disabled; fall through to the OS preference.
+  }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
@@ -19,7 +24,11 @@ export function ThemeToggle() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem('theme', theme)
+    try {
+      localStorage.setItem('theme', theme)
+    } catch {
+      // Not remembering the choice is harmless.
+    }
   }, [theme])
 
   return (

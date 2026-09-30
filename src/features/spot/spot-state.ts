@@ -1,4 +1,4 @@
-import { syncPair, type PairKeys, type PairSide } from '@/features/calculator/pair'
+import { syncPair, type PairKeys, type PairSide } from '@/lib/pair'
 
 /**
  * The spot form as plain data plus pure transitions, mirroring futures-state.ts:

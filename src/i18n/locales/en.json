@@ -34,7 +34,11 @@
       "pnl": "Profit or loss when closing at the close price, before fees and funding. Long profits when the price rises, short when it falls.",
       "amountUnits": "The same margin counted in units of the asset: USDT ÷ open price. Leverage does not change it. Type either side and the other follows."
     },
-    "amountUnits": "Amount in asset"
+    "amountUnits": "Amount in asset",
+    "pnlUnreachable": {
+      "long": "Unreachable: even at a price of 0 this long loses {{limit}}. The close price was left as it was.",
+      "short": "Unreachable: even at a price of 0 this short makes {{limit}}. The close price was left as it was."
+    }
   },
   "risk": {
     "heading": "What this position actually is",

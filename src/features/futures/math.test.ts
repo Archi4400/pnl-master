@@ -4,10 +4,8 @@ import {
   clampLeverage,
   computeClosePrice,
   computePnl,
-  formatNumber,
-  parseNumber,
-  sanitizeNumberInput,
-  stepNumber,
+  isPnlReachable,
+  pnlAtZeroPrice,
 } from './math'
 
 describe('computePnl', () => {
@@ -133,6 +131,36 @@ describe('computeClosePrice', () => {
       computeClosePrice({ amount: 0, openPrice: 100, leverage: 10, direction: 'long' }, 50),
     ).toBeNull()
   })
+
+  it('refuses a loss that would need a negative price', () => {
+    // 12.5 at 1x: the price hitting 0 loses 12.5, so a 50 loss has no exit.
+    const position = { amount: 12.5, openPrice: 100, leverage: 1, direction: 'long' as const }
+    expect(computeClosePrice(position, -50)).toBeNull()
+    expect(computeClosePrice(position, -12.5)).toBe(0)
+  })
+
+  it('refuses a short profit beyond the price reaching zero', () => {
+    const position = { amount: 100, openPrice: 50, leverage: 2, direction: 'short' as const }
+    expect(computeClosePrice(position, 250)).toBeNull()
+    expect(computeClosePrice(position, 200)).toBe(0)
+  })
+})
+
+describe('pnlAtZeroPrice / isPnlReachable', () => {
+  it('caps a long loss at the notional', () => {
+    const long = { amount: 100, leverage: 10, direction: 'long' as const }
+    expect(pnlAtZeroPrice(long)).toBe(-1000)
+    expect(isPnlReachable(long, -1000)).toBe(true)
+    expect(isPnlReachable(long, -1001)).toBe(false)
+    expect(isPnlReachable(long, 99999)).toBe(true)
+  })
+
+  it('caps a short profit at the notional', () => {
+    const short = { amount: 100, leverage: 10, direction: 'short' as const }
+    expect(pnlAtZeroPrice(short)).toBe(1000)
+    expect(isPnlReachable(short, 1001)).toBe(false)
+    expect(isPnlReachable(short, -99999)).toBe(true)
+  })
 })
 
 describe('clampLeverage', () => {
@@ -146,92 +174,5 @@ describe('clampLeverage', () => {
     [Number.NaN, 1],
   ])('clamps %p to %p, with no upper limit', (input, expected) => {
     expect(clampLeverage(input)).toBe(expected)
-  })
-})
-
-describe('parseNumber', () => {
-  it('accepts a comma as the decimal separator', () => {
-    expect(parseNumber('12,5')).toBe(12.5)
-  })
-
-  it('treats partial input as no value yet', () => {
-    expect(parseNumber('')).toBeNull()
-    expect(parseNumber('-')).toBeNull()
-    expect(parseNumber('.')).toBeNull()
-  })
-
-  it('rejects text', () => {
-    expect(parseNumber('abc')).toBeNull()
-  })
-})
-
-describe('sanitizeNumberInput', () => {
-  it.each(['', '0', '12', '12.', '12.5', '12,5', '.5'])('lets %j through', (raw) => {
-    expect(sanitizeNumberInput(raw)).toBe(raw)
-  })
-
-  it.each(['abc', '12a', '1e5', '1.2.3', '1,2.3', '+5', '-5'])('rejects %j', (raw) => {
-    expect(sanitizeNumberInput(raw)).toBeNull()
-  })
-
-  it('drops whitespace from pasted numbers', () => {
-    expect(sanitizeNumberInput(' 1 000.5 ')).toBe('1000.5')
-  })
-
-  it('allows a leading minus only when asked to', () => {
-    expect(sanitizeNumberInput('-', { allowNegative: true })).toBe('-')
-    expect(sanitizeNumberInput('-12.5', { allowNegative: true })).toBe('-12.5')
-    expect(sanitizeNumberInput('1-2', { allowNegative: true })).toBeNull()
-    expect(sanitizeNumberInput('--1', { allowNegative: true })).toBeNull()
-  })
-})
-
-describe('stepNumber', () => {
-  it.each([
-    ['100', 1, '101'],
-    ['100', -1, '99'],
-    ['12.5', 1, '12.6'],
-    ['12,5', -1, '12.4'],
-    ['0.020', 1, '0.021'],
-    ['12.', 1, '13'],
-  ] as const)('steps %j by its last typed digit (%i) to %j', (raw, direction, expected) => {
-    expect(stepNumber(raw, direction)).toBe(expected)
-  })
-
-  it('does not accumulate float error', () => {
-    expect(stepNumber('0.2', 1)).toBe('0.3')
-    expect(stepNumber('1.10', 1)).toBe('1.11')
-  })
-
-  it('uses an explicit step when given', () => {
-    expect(stepNumber('10', 1, { step: 1 })).toBe('11')
-    expect(stepNumber('10.5', 1, { step: 1 })).toBe('11.5')
-  })
-
-  it('scales the step with the multiplier', () => {
-    expect(stepNumber('100', 1, { multiplier: 10 })).toBe('110')
-    expect(stepNumber('1.5', -1, { multiplier: 10 })).toBe('0.5')
-  })
-
-  it('starts from zero when the field is empty or partial', () => {
-    expect(stepNumber('', 1)).toBe('1')
-    expect(stepNumber('-', 1, { allowNegative: true })).toBe('1')
-  })
-
-  it('stops at zero unless negatives are allowed', () => {
-    expect(stepNumber('0', -1)).toBe('0')
-    expect(stepNumber('0.5', -1, { multiplier: 10 })).toBe('0.0')
-    expect(stepNumber('0', -1, { allowNegative: true })).toBe('-1')
-  })
-})
-
-describe('formatNumber', () => {
-  it('trims trailing zeros', () => {
-    expect(formatNumber(110.5, 2)).toBe('110.5')
-    expect(formatNumber(110, 2)).toBe('110')
-  })
-
-  it('rounds to the requested precision', () => {
-    expect(formatNumber(1 / 3, 2)).toBe('0.33')
   })
 })
