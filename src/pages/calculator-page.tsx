@@ -11,6 +11,7 @@ import { useFuturesCalculator } from '@/features/futures/use-futures-calculator'
 import { InfoSection } from '@/features/info/info-section'
 import { AssetPicker } from '@/features/market/asset-picker'
 import { useAsset } from '@/features/market/use-asset'
+import { NewsSection } from '@/features/news/news-section'
 import { SaveButton } from '@/features/saved/save-button'
 import { SavedList } from '@/features/saved/saved-list'
 import type { SavedEntry } from '@/features/saved/storage'
@@ -128,6 +129,9 @@ export function CalculatorPage() {
       />
 
       <InfoSection />
+
+      {/* Last before the footer: context to read once the maths is done. */}
+      <NewsSection />
     </div>
   )
 }

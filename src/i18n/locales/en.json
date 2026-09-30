@@ -177,5 +177,19 @@
     "empty": "Nothing saved yet. Press Save on a calculator to keep it here, then load it back any time.",
     "load": "Load",
     "remove": "Delete \"{{name}}\""
+  },
+  "news": {
+    "poweredBy": "News by NewsData.io",
+    "loading": "Loading news…",
+    "failed": "Could not load the news right now.",
+    "retry": "Try again",
+    "empty": "No fresh headlines at the moment.",
+    "missingKey": "News is off: add VITE_NEWSDATA_API_KEY to .env.local (see .env.example) and restart the dev server. This note only shows in development.",
+    "readOriginal": "Read original",
+    "opensInNewTab": "(opens in a new tab)",
+    "eyebrow": "Market news",
+    "titleLead": "What moved crypto",
+    "titleMarked": "today.",
+    "intro": "The latest headlines, refreshed every 15 minutes. Each one opens the original story in a new tab."
   }
 }
