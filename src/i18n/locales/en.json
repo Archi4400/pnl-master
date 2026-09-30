@@ -8,23 +8,66 @@
     "uk": "Ukrainian"
   },
   "theme": {
-    "toggle": "Toggle theme"
+    "toggle": "Theme",
+    "light": "Light theme",
+    "dark": "Dark theme"
   },
   "calculator": {
-    "heading": "PnL calculator",
-    "subheading": "Every field is editable — change one and the rest follow.",
+    "eyebrow": "Calculator",
+    "titleLead": "Leverage does not multiply",
+    "titleMarked": "your edge.",
+    "titleTail": "It multiplies the size of your mistake.",
+    "intro": "Change any field and the rest follow. Type into profit and loss instead, and the close price is solved backwards from it.",
+    "inputs": "Inputs",
     "amount": "Amount",
     "openPrice": "Open price",
     "closePrice": "Close price",
     "leverage": "Leverage",
-    "leverageHint": "From {{min}} to {{max}}",
     "pnl": "Profit / loss",
     "pnlHint": "Type a target here and the close price is solved for it.",
     "reset": "Reset"
+  },
+  "risk": {
+    "heading": "What this position actually is",
+    "positionSize": "Position size",
+    "positionSizeNote": "{{leverage}}× your amount",
+    "roi": "Return on margin",
+    "roiNote": "Against the money you put up",
+    "liquidationMove": "Move to liquidation",
+    "liquidationMoveNote": "Against you, from entry",
+    "liquidationPrice": "Liquidation price",
+    "disclaimer": "Simplified: maintenance margin, fees and funding all bring liquidation closer than shown. Treat these as a ceiling, not a promise."
+  },
+  "marquee": {
+    "one": "Size before direction",
+    "two": "Survive the drawdown",
+    "three": "Leverage is a deadline",
+    "four": "Know your exit first"
+  },
+  "info": {
+    "eyebrow": "Leverage, plainly",
+    "titleLead": "Three things leverage does that",
+    "titleMarked": "nobody mentions.",
+    "intro": "None of this is advice. It is arithmetic that stays true whatever the market does.",
+    "liquidationTitle": "Liquidation arrives fast",
+    "liquidationBody": "At 25× a 4% move against you wipes the whole margin. At 100× it takes 1%. The higher the leverage, the tighter the stop the exchange sets on your behalf — and it does not ask first.",
+    "feesTitle": "Fees scale with the position",
+    "feesBody": "Commission and funding are charged on the notional, not on your money. At 25× you pay twenty-five times what the amount suggests, whether the trade wins or loses.",
+    "asymmetryTitle": "Losses are not symmetrical",
+    "asymmetryBody": "Down 50% needs up 100% to get back to even. Down 80% needs 400%. Leverage moves you along that curve much faster than it moves you back."
+  },
+  "footer": {
+    "tagline": "Profit and loss, without the spreadsheet",
+    "disclaimer": "A calculator, not financial advice. Figures are simplified and ignore fees, funding and maintenance margin."
   },
   "common": {
     "notFoundTitle": "Page not found",
     "notFoundBody": "That route does not exist.",
     "goHome": "Back to the calculator"
+  },
+  "direction": {
+    "label": "Direction",
+    "long": "Long",
+    "short": "Short"
   }
 }

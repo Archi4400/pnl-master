@@ -2,7 +2,7 @@ import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 
 type Theme = 'light' | 'dark'
 
@@ -14,7 +14,7 @@ function readInitialTheme(): Theme {
 
 export function ThemeToggle() {
   const { t } = useTranslation()
-  // Lazy initialiser: the function runs once on mount instead of on every render.
+  // Lazy initialiser: the function runs once on mount instead of every render.
   const [theme, setTheme] = useState<Theme>(readInitialTheme)
 
   useEffect(() => {
@@ -23,17 +23,15 @@ export function ThemeToggle() {
   }, [theme])
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      aria-label={t('theme.toggle')}
-      onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-    >
-      {theme === 'dark' ? (
-        <Sun className="size-4" aria-hidden />
-      ) : (
-        <Moon className="size-4" aria-hidden />
-      )}
-    </Button>
+    <SegmentedControl
+      label={t('theme.toggle')}
+      value={theme}
+      onValueChange={(next) => setTheme(next as Theme)}
+      className="w-[5.5rem]"
+      options={[
+        { value: 'light', ariaLabel: t('theme.light'), label: <Sun className="size-3.5" /> },
+        { value: 'dark', ariaLabel: t('theme.dark'), label: <Moon className="size-3.5" /> },
+      ]}
+    />
   )
 }

@@ -73,7 +73,8 @@ export function Logo({ iconOnly = false, tile = true, size = 40, className }: Lo
       {!iconOnly && (
         <span className="font-bold leading-none tracking-tight" style={{ fontSize: size * 0.68 }}>
           <span className="inline-block border-b-[0.2em] border-lime pb-[0.12em]">
-            <span className="text-lime">PnL</span> <span className="text-content">Master</span>
+            <span className="text-accent-text">PnL</span>{' '}
+            <span className="text-content">Master</span>
           </span>
         </span>
       )}

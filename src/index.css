@@ -34,6 +34,23 @@
   --color-profit: var(--profit);
   --color-loss: var(--loss);
 
+  /* The invert slab flips the ground, so the result colours have to flip with
+     it — otherwise the light theme paints its dark-on-light red onto a black
+     card and drops to 3.5:1. */
+  --color-profit-invert: var(--profit-invert);
+  --color-loss-invert: var(--loss-invert);
+
+  /* Lime as *text*. The raw accent is only legible on the dark ground, so on
+     cream this darkens to a lime that still reads as the brand colour but
+     clears 4.5:1. Use it for wordmarks and labels; --color-lime stays for
+     fills, rules and dots, where contrast rules do not apply. */
+  --color-accent-text: var(--accent-text);
+
+  /* Marker highlight behind headline words. Raw lime works under ink text, but
+     dark theme sets cream text on it (1.1:1), so there it drops to the deep
+     lime, which keeps the brand hue and clears 4.5:1 under cream. */
+  --color-marker: var(--marker);
+
   --radius-card: 24px;
   --radius-brand: 22px;
 
@@ -59,6 +76,10 @@
   --line: rgba(20, 20, 20, 0.14);
   --profit: #5c7a00; /* 4.95:1 on white, 4.58:1 on cream */
   --loss: #c7350f; /* 5.32:1 on white */
+  --profit-invert: #c6ff00; /* the slab is dark here */
+  --loss-invert: #ff6b4a;
+  --accent-text: #5c7a00;
+  --marker: #c6ff00;
 }
 
 :root.dark {
@@ -72,6 +93,10 @@
   --line: rgba(248, 246, 240, 0.16);
   --profit: #c6ff00; /* 15.68:1 on ink-block */
   --loss: #ff6b4a; /* 6.60:1 on ink-block */
+  --profit-invert: #5c7a00; /* the slab is cream here */
+  --loss-invert: #c7350f;
+  --accent-text: #c6ff00;
+  --marker: #5c7a00; /* 4.58:1 under cream text */
 }
 
 @keyframes rise {
@@ -129,6 +154,15 @@ input[type='number']::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* Scroll-revealed blocks start transparent. Printing never scrolls, so force
+   them visible — content hidden behind an animation must never be able to
+   disappear permanently. */
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+  }
 }
 
 /* Honour the OS setting: keep the page readable but stop everything moving. */

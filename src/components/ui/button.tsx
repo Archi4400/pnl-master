@@ -9,21 +9,23 @@ import { cn } from '@/lib/utils'
  * computed class map, except the variant names are inferred into the prop types.
  */
 const buttonVariants = cva(
-  'inline-flex cursor-pointer items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-mono text-[13px] tracking-tight whitespace-nowrap transition-all duration-200 ease-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-brand text-brand-contrast hover:opacity-90',
-        outline: 'border border-border-subtle bg-surface-raised hover:bg-surface',
-        ghost: 'hover:bg-surface-raised',
+        solid: 'bg-surface-invert text-content-invert hover:-translate-y-0.5 hover:shadow-lg',
+        outline:
+          'border border-line bg-surface-raised text-content hover:border-content hover:-translate-y-0.5',
+        lime: 'bg-lime text-lime-ink hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_var(--color-lime)]',
+        ghost: 'text-content-muted hover:text-content',
       },
       size: {
-        sm: 'h-8 px-3',
-        md: 'h-10 px-4',
+        sm: 'h-8 px-3.5',
+        md: 'h-10 px-5',
         icon: 'size-10',
       },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: { variant: 'solid', size: 'md' },
   },
 )
 

@@ -10,6 +10,8 @@ type NumberFieldProps = Omit<ComponentProps<'input'>, 'onChange' | 'value' | 'si
   /** Colours the value. "auto" follows the sign of the number. */
   tone?: 'default' | 'auto'
   size?: 'md' | 'lg'
+  /** Small text pinned inside the right edge of the box. */
+  suffix?: string
 }
 
 export function NumberField({
@@ -19,6 +21,7 @@ export function NumberField({
   hint,
   tone = 'default',
   size = 'md',
+  suffix,
   className,
   id,
   ...props
@@ -28,31 +31,46 @@ export function NumberField({
   const negative = signed && numeric < 0
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="text-[11px] font-medium tracking-[0.14em] text-content-faint uppercase"
+        className="font-mono text-[11px] tracking-[0.16em] text-content-faint uppercase"
       >
         {label}
       </label>
 
-      <input
-        id={id}
-        type="text"
-        inputMode="decimal"
-        autoComplete="off"
-        spellCheck={false}
-        value={value}
-        onChange={(event) => onValueChange(event.target.value)}
+      {/* focus-within lifts the whole box, so the ring reads as one control
+          rather than a rectangle with a separate outline on the input. */}
+      <div
         className={cn(
-          'w-full border-b-2 border-line bg-transparent pb-1.5 tabular-nums',
-          'transition-colors outline-none focus:border-lime',
-          size === 'lg' ? 'text-3xl font-bold sm:text-4xl' : 'text-xl font-medium',
-          signed ? (negative ? 'text-loss' : 'text-profit') : 'text-content',
-          className,
+          'relative flex items-center rounded-xl border border-line bg-surface-raised',
+          'transition-colors duration-200 ease-brand',
+          'focus-within:border-lime focus-within:ring-4 focus-within:ring-lime/25',
         )}
-        {...props}
-      />
+      >
+        <input
+          id={id}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(event) => onValueChange(event.target.value)}
+          className={cn(
+            'w-full min-w-0 bg-transparent tabular-nums outline-none',
+            size === 'lg' ? 'px-4 py-3 text-3xl font-bold sm:text-4xl' : 'px-4 py-2.5 text-xl',
+            signed ? (negative ? 'text-loss' : 'text-profit') : 'text-content',
+            suffix && 'pr-12',
+            className,
+          )}
+          {...props}
+        />
+        {suffix ? (
+          <span className="pointer-events-none absolute right-4 font-mono text-xs text-content-faint">
+            {suffix}
+          </span>
+        ) : null}
+      </div>
 
       {hint ? <p className="text-xs text-content-faint">{hint}</p> : null}
     </div>

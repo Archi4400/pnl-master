@@ -2,28 +2,41 @@ export const LEVERAGE_MIN = 1
 export const LEVERAGE_MAX = 500
 export const LEVERAGE_DEFAULT = 1
 
+export type Direction = 'long' | 'short'
+
+export const DIRECTION_DEFAULT: Direction = 'long'
+
 export type Position = {
   amount: number
   openPrice: number
   closePrice: number
   leverage: number
+  direction: Direction
 }
 
 /**
- * Profit/loss of a long position.
+ * Profit/loss of a position.
  *
  *   units = amount * leverage / openPrice
- *   pnl   = units * (closePrice - openPrice)
+ *   pnl   = units * priceMove
  *
- * which reduces to the expression below. Returns null when the inputs cannot
- * describe a position — an open price of zero has no units to buy.
+ * The only thing direction changes is the sign of the move: a long earns when
+ * the price rises, a short when it falls. Returns null when the inputs cannot
+ * describe a position — an open price of zero has no units to trade.
  */
-export function computePnl({ amount, openPrice, closePrice, leverage }: Position): number | null {
+export function computePnl({
+  amount,
+  openPrice,
+  closePrice,
+  leverage,
+  direction,
+}: Position): number | null {
   if (!Number.isFinite(amount) || !Number.isFinite(openPrice) || !Number.isFinite(closePrice)) {
     return null
   }
   if (openPrice <= 0) return null
-  return (amount * leverage * (closePrice - openPrice)) / openPrice
+  const move = direction === 'long' ? closePrice - openPrice : openPrice - closePrice
+  return (amount * leverage * move) / openPrice
 }
 
 /**
@@ -34,7 +47,7 @@ export function computePnl({ amount, openPrice, closePrice, leverage }: Position
  * still open to question.
  */
 export function computeClosePrice(
-  { amount, openPrice, leverage }: Omit<Position, 'closePrice'>,
+  { amount, openPrice, leverage, direction }: Omit<Position, 'closePrice'>,
   pnl: number,
 ): number | null {
   if (!Number.isFinite(amount) || !Number.isFinite(openPrice) || !Number.isFinite(pnl)) {
@@ -45,7 +58,8 @@ export function computeClosePrice(
   // With nothing at stake every close price yields the same zero PnL, so the
   // question has no single answer.
   if (notional === 0) return null
-  return openPrice * (1 + pnl / notional)
+  const delta = (pnl / notional) * openPrice
+  return direction === 'long' ? openPrice + delta : openPrice - delta
 }
 
 /**
