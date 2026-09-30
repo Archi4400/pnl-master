@@ -22,12 +22,7 @@ export function LogoIcon({ tile = false, size = 40, decorative = false }: LogoIc
   const glyph = (stemClass: string) => (
     <g>
       <rect x="0" y="0" width="8" height="36" className={stemClass} />
-      <path
-        d="M4 4 H16 a10 10 0 0 1 0 20 H4"
-        fill="none"
-        strokeWidth="8"
-        className="stroke-lime"
-      />
+      <path d="M4 4 H16 a10 10 0 0 1 0 20 H4" fill="none" strokeWidth="8" className="stroke-lime" />
     </g>
   )
 
@@ -71,8 +66,8 @@ export function Logo({ iconOnly = false, tile = true, size = 40, className }: Lo
       <LogoIcon tile={tile} size={size} decorative={!iconOnly} />
 
       {!iconOnly && (
-        <span className="font-bold leading-none tracking-tight" style={{ fontSize: size * 0.68 }}>
-          <span className="inline-block border-b-[0.2em] border-lime pb-[0.12em]">
+        <span className="leading-none font-bold tracking-tight" style={{ fontSize: size * 0.68 }}>
+          <span className="border-lime inline-block border-b-[0.2em] pb-[0.12em]">
             <span className="text-accent-text">PnL</span>{' '}
             <span className="text-content">Master</span>
           </span>

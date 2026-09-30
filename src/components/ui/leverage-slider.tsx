@@ -12,12 +12,15 @@ type LeverageSliderProps = {
  * Radix slider instead of a native range input: the native one cannot be styled
  * consistently across browsers, and here the filled track is a real signal — the
  * further right it runs, the more leverage is on.
+ *
+ * The value may exceed max (leverage is typed freely); the thumb then pins to
+ * the right end instead of running off the track.
  */
 export function LeverageSlider({ value, onValueChange, min, max, label }: LeverageSliderProps) {
   return (
     <Slider.Root
       aria-label={label}
-      value={[value]}
+      value={[Math.min(Math.max(value, min), max)]}
       onValueChange={([next]) => next !== undefined && onValueChange(next)}
       min={min}
       max={max}

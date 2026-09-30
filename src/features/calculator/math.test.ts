@@ -7,6 +7,7 @@ import {
   formatNumber,
   parseNumber,
   sanitizeNumberInput,
+  stepNumber,
 } from './math'
 
 describe('computePnl', () => {
@@ -140,10 +141,10 @@ describe('clampLeverage', () => {
     [0, 1],
     [1, 1],
     [125, 125],
-    [500, 500],
-    [900, 500],
+    [200, 200],
+    [900, 900],
     [Number.NaN, 1],
-  ])('clamps %p to %p', (input, expected) => {
+  ])('clamps %p to %p, with no upper limit', (input, expected) => {
     expect(clampLeverage(input)).toBe(expected)
   })
 })
@@ -182,6 +183,45 @@ describe('sanitizeNumberInput', () => {
     expect(sanitizeNumberInput('-12.5', { allowNegative: true })).toBe('-12.5')
     expect(sanitizeNumberInput('1-2', { allowNegative: true })).toBeNull()
     expect(sanitizeNumberInput('--1', { allowNegative: true })).toBeNull()
+  })
+})
+
+describe('stepNumber', () => {
+  it.each([
+    ['100', 1, '101'],
+    ['100', -1, '99'],
+    ['12.5', 1, '12.6'],
+    ['12,5', -1, '12.4'],
+    ['0.020', 1, '0.021'],
+    ['12.', 1, '13'],
+  ] as const)('steps %j by its last typed digit (%i) to %j', (raw, direction, expected) => {
+    expect(stepNumber(raw, direction)).toBe(expected)
+  })
+
+  it('does not accumulate float error', () => {
+    expect(stepNumber('0.2', 1)).toBe('0.3')
+    expect(stepNumber('1.10', 1)).toBe('1.11')
+  })
+
+  it('uses an explicit step when given', () => {
+    expect(stepNumber('10', 1, { step: 1 })).toBe('11')
+    expect(stepNumber('10.5', 1, { step: 1 })).toBe('11.5')
+  })
+
+  it('scales the step with the multiplier', () => {
+    expect(stepNumber('100', 1, { multiplier: 10 })).toBe('110')
+    expect(stepNumber('1.5', -1, { multiplier: 10 })).toBe('0.5')
+  })
+
+  it('starts from zero when the field is empty or partial', () => {
+    expect(stepNumber('', 1)).toBe('1')
+    expect(stepNumber('-', 1, { allowNegative: true })).toBe('1')
+  })
+
+  it('stops at zero unless negatives are allowed', () => {
+    expect(stepNumber('0', -1)).toBe('0')
+    expect(stepNumber('0.5', -1, { multiplier: 10 })).toBe('0.0')
+    expect(stepNumber('0', -1, { allowNegative: true })).toBe('-1')
   })
 })
 

@@ -15,9 +15,14 @@ const buttonVariants = cva(
       variant: {
         solid: 'bg-surface-invert text-content-invert hover:-translate-y-0.5 hover:shadow-lg',
         outline:
-          'border border-line bg-surface-raised text-content hover:border-content hover:-translate-y-0.5',
+          'border border-line bg-surface-raised text-content hover:border-lime hover:bg-lime hover:text-lime-ink hover:-translate-y-0.5',
         lime: 'bg-lime text-lime-ink hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_var(--color-lime)]',
-        ghost: 'text-content-muted hover:text-content',
+        // A lime fill rather than just a colour shift, so a hover is obvious at a
+        // glance. data-[state=open] keeps it lit while its popover is open.
+        ghost:
+          'text-content-muted hover:bg-lime hover:text-lime-ink data-[state=open]:bg-lime data-[state=open]:text-lime-ink',
+        // Destructive actions tint red instead: lime would read as "go ahead".
+        danger: 'text-content-muted hover:bg-loss/15 hover:text-loss',
       },
       size: {
         sm: 'h-8 px-3.5',

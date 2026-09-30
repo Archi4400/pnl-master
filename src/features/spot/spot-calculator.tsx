@@ -6,8 +6,10 @@ import { NumberField } from '@/components/ui/number-field'
 import { SectionLabel } from '@/components/ui/section-label'
 import { SpecRow } from '@/components/ui/spec-row'
 import { formatNumber } from '@/features/calculator/math'
+import { formatPrice } from '@/features/market/format'
+import { MarketPriceButton } from '@/features/market/market-price-button'
 
-import { useSpotCalculator } from './use-spot-calculator'
+import type { SpotCalculatorState } from './use-spot-calculator'
 
 const DASH = '—'
 
@@ -39,21 +41,32 @@ function Signed({
   )
 }
 
-export function SpotCalculator() {
-  const { t } = useTranslation()
-  const { values, setField, reset, purchase, before, after, saleAfter, saleBefore } =
-    useSpotCalculator()
+type SpotCalculatorProps = {
+  /** State lives in the page, so saved calculations and links can load into it. */
+  calc: SpotCalculatorState
+  /** Picked coin, or null for a generic "units". */
+  asset: string | null
+  /** Extra buttons for the card header, before Reset (save, share). */
+  actions?: React.ReactNode
+}
+
+export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
+  const { t, i18n } = useTranslation()
+  const { values, setField, reset, purchase, before, after, saleAfter, saleBefore } = calc
 
   const rowClass = 'border-content-invert/15'
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
       <div className="rounded-card border-line bg-surface-raised flex flex-col gap-7 border p-5 sm:p-7">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2">
           <SectionLabel index="01">{t('spot.holdingHeading')}</SectionLabel>
-          <Button variant="ghost" size="sm" onClick={reset} className="-mr-2">
-            {t('calculator.reset')}
-          </Button>
+          <div className="-mr-2 flex items-center">
+            {actions}
+            <Button variant="ghost" size="sm" onClick={reset}>
+              {t('calculator.reset')}
+            </Button>
+          </div>
         </div>
 
         {/* The price comes first because it is what links the two amounts
@@ -74,7 +87,7 @@ export function SpotCalculator() {
             tooltip={t('spot.tips.quantity')}
             value={values.quantity}
             onValueChange={(next) => setField('quantity', next)}
-            suffix={t('units.asset')}
+            suffix={asset ?? t('units.asset')}
           />
           <NumberField
             id="spot-invested"
@@ -96,6 +109,9 @@ export function SpotCalculator() {
                 tooltip={t('spot.tips.buyPrice')}
                 value={values.buyPrice}
                 onValueChange={(next) => setField('buyPrice', next)}
+                hint={
+                  <MarketPriceButton asset={asset} onUse={(next) => setField('buyPrice', next)} />
+                }
               />
             </div>
             <NumberField
@@ -104,7 +120,7 @@ export function SpotCalculator() {
               tooltip={t('spot.tips.buyQuantity')}
               value={values.buyQuantity}
               onValueChange={(next) => setField('buyQuantity', next)}
-              suffix={t('units.asset')}
+              suffix={asset ?? t('units.asset')}
             />
             <NumberField
               id="spot-buy-cost"
@@ -125,7 +141,13 @@ export function SpotCalculator() {
             value={values.salePrice}
             onValueChange={(next) => setField('salePrice', next)}
             size="lg"
-            hint={t('spot.salePriceHint')}
+            hint={
+              asset ? (
+                <MarketPriceButton asset={asset} onUse={(next) => setField('salePrice', next)} />
+              ) : (
+                t('spot.salePriceHint')
+              )
+            }
           />
         </div>
       </div>
@@ -142,11 +164,13 @@ export function SpotCalculator() {
             <Hint label={t('spot.newAverage')}>{t('spot.tips.newAverage')}</Hint>
           </span>
           <span className="text-4xl font-bold tabular-nums sm:text-5xl">
-            {after ? formatNumber(after.averagePrice, 8) : DASH}
+            {after ? formatPrice(after.averagePrice, i18n.resolvedLanguage) : DASH}
           </span>
           <span className="text-content-invert/70 text-sm">
             {before
-              ? t('spot.wasAverage', { price: formatNumber(before.averagePrice, 8) })
+              ? t('spot.wasAverage', {
+                  price: formatPrice(before.averagePrice, i18n.resolvedLanguage),
+                })
               : t('spot.noHolding')}
             {after?.averageShiftPct != null && after.averageShiftPct !== 0 ? (
               <>

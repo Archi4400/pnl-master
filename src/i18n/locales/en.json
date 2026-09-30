@@ -73,13 +73,16 @@
   },
   "footer": {
     "tagline": "Profit and loss, without the spreadsheet",
-    "disclaimer": "A calculator, not financial advice. Figures are simplified and ignore fees, funding and maintenance margin."
+    "disclaimer": "A calculator, not financial advice. Figures are simplified and ignore fees, funding and maintenance margin.",
+    "madeBy": "Made by"
   },
   "common": {
     "notFoundTitle": "Page not found",
     "notFoundBody": "That route does not exist.",
     "goHome": "Back to the calculator",
-    "hintFor": "About: {{label}}"
+    "hintFor": "About: {{label}}",
+    "increase": "Increase",
+    "decrease": "Decrease"
   },
   "direction": {
     "label": "Direction",
@@ -140,5 +143,35 @@
   "units": {
     "asset": "units",
     "quote": "USDT"
+  },
+  "market": {
+    "pick": "Choose coin",
+    "search": "Search coin, e.g. BTC",
+    "clear": "No coin",
+    "loading": "Loading prices…",
+    "unavailable": "Binance price unavailable",
+    "noResults": "No coin with that ticker on Binance",
+    "source": "Live prices from Binance, quoted in USDT.",
+    "use": "use",
+    "label": "Market"
+  },
+  "share": {
+    "share": "Share",
+    "copied": "Copied",
+    "copyManually": "Copy this link",
+    "linkLabel": "Link to this calculation",
+    "hint": "Anyone opening it sees these exact inputs. The address bar always holds the same link, so a refresh or bookmark keeps them too.",
+    "title": "Link to this calculation",
+    "copy": "Copy"
+  },
+  "saved": {
+    "heading": "Saved calculations",
+    "save": "Save",
+    "done": "Saved",
+    "nameLabel": "Name",
+    "failed": "Could not save: browser storage is full or disabled.",
+    "empty": "Nothing saved yet. Press Save on a calculator to keep it here, then load it back any time.",
+    "load": "Load",
+    "remove": "Delete \"{{name}}\""
   }
 }
