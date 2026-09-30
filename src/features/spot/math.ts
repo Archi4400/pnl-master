@@ -14,15 +14,15 @@ export type Holding = {
 }
 
 export type Purchase = {
-  /** Quote currency spent on the new buy. */
-  amount: number
+  /** Units the new buy adds. */
+  quantity: number
   /** Price of the new buy. */
   price: number
 }
 
 export type SpotResult = {
-  /** Units the new buy adds. */
-  boughtQuantity: number
+  /** What the new buy costs in the quote currency. */
+  buyCost: number
   /** Units held after the buy. */
   quantity: number
   /** Total paid for everything held after the buy. */
@@ -45,42 +45,34 @@ function isValid(...values: number[]): boolean {
   return values.every((value) => Number.isFinite(value) && value >= 0)
 }
 
-/** Units a given spend buys at a given price. Zero when nothing is bought. */
-export function quantityFor({ amount, price }: Purchase): number | null {
-  if (!isValid(amount, price)) return null
-  if (amount === 0) return 0
-  // Spending money at a price of zero has no meaningful unit count.
-  if (price === 0) return null
-  return amount / price
-}
-
 /**
  * The position after an optional top-up.
  *
- *   cost     = held * avg + spend
- *   quantity = held + spend / buyPrice
+ *   cost     = held * avg + bought * buyPrice
+ *   quantity = held + bought
  *   average  = cost / quantity
  *
- * An empty purchase (spend of 0) leaves the holding as it is, so the same call
+ * An empty purchase (0 units) leaves the holding as it is, so the same call
  * answers "where am I now" and "where will I be after buying".
  */
 export function averageAfterPurchase(holding: Holding, purchase: Purchase): SpotResult | null {
-  if (!isValid(holding.quantity, holding.averagePrice)) return null
-  const boughtQuantity = quantityFor(purchase)
-  if (boughtQuantity === null) return null
+  if (!isValid(holding.quantity, holding.averagePrice, purchase.quantity, purchase.price)) {
+    return null
+  }
 
-  const quantity = holding.quantity + boughtQuantity
+  const buyCost = purchase.quantity * purchase.price
+  const quantity = holding.quantity + purchase.quantity
   // Nothing held and nothing bought: there is no position to average.
   if (quantity === 0) return null
 
-  const cost = holding.quantity * holding.averagePrice + purchase.amount
+  const cost = holding.quantity * holding.averagePrice + buyCost
   const averagePrice = cost / quantity
   const averageShiftPct =
     holding.quantity > 0 && holding.averagePrice > 0
       ? ((averagePrice - holding.averagePrice) / holding.averagePrice) * 100
       : null
 
-  return { boughtQuantity, quantity, cost, averagePrice, averageShiftPct }
+  return { buyCost, quantity, cost, averagePrice, averageShiftPct }
 }
 
 /** Outcome of selling the whole position at one price. */

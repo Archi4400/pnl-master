@@ -82,6 +82,26 @@ export function parseNumber(raw: string): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+const NUMBER_INPUT = /^\d*[.,]?\d*$/
+const SIGNED_NUMBER_INPUT = /^-?\d*[.,]?\d*$/
+
+/**
+ * Gate for what a number field may contain while it is being typed.
+ *
+ * Returns the cleaned text, or null to reject the keystroke and keep the field
+ * as it was. Partial input like "", "-" or "12." has to pass, otherwise nobody
+ * could type their way to a real number. Whitespace is dropped so a pasted
+ * "1 000" still lands; letters, a second separator or "1e5" do not.
+ */
+export function sanitizeNumberInput(
+  raw: string,
+  { allowNegative = false }: { allowNegative?: boolean } = {},
+): string | null {
+  const cleaned = raw.replace(/\s/g, '')
+  const pattern = allowNegative ? SIGNED_NUMBER_INPUT : NUMBER_INPUT
+  return pattern.test(cleaned) ? cleaned : null
+}
+
 /** Render a computed value for display, trimming trailing zeros. */
 export function formatNumber(value: number, decimals: number): string {
   if (!Number.isFinite(value)) return ''

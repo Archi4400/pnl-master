@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import {
   clampLeverage,
@@ -10,16 +10,28 @@ import {
   parseNumber,
   type Direction,
 } from './math'
+import { syncPair, type PairKeys, type PairSide } from './pair'
 
-export type CalculatorField = 'amount' | 'openPrice' | 'closePrice' | 'pnl' | 'leverage'
+export type CalculatorField =
+  'amount' | 'amountUnits' | 'openPrice' | 'closePrice' | 'pnl' | 'leverage'
 
 export type CalculatorValues = Record<CalculatorField, string>
 
 const PRICE_DECIMALS = 8
 const PNL_DECIMALS = 2
 
+/** The margin in USDT and the same margin in units of the asset, at the open price. */
+const AMOUNT_PAIR: PairKeys<CalculatorField> = {
+  quote: 'amount',
+  units: 'amountUnits',
+  price: 'openPrice',
+}
+
+const AMOUNT_SOURCE_DEFAULT: PairSide = 'quote'
+
 const INITIAL: CalculatorValues = {
   amount: '1000',
+  amountUnits: '10',
   openPrice: '100',
   closePrice: '110',
   pnl: '100',
@@ -29,15 +41,18 @@ const INITIAL: CalculatorValues = {
 /**
  * Recalculate the one field the user is not currently typing in.
  *
- * Editing the PnL solves for the close price; editing anything else solves for
- * the PnL. The edited field is never rewritten, otherwise the caret would jump
- * mid-keystroke.
+ * The margin pair is synced first, so the PnL maths below always sees the USDT
+ * amount that matches the units. Then editing the PnL solves for the close
+ * price; editing anything else solves for the PnL. The edited field is never
+ * rewritten, otherwise the caret would jump mid-keystroke.
  */
 function recalculate(
-  next: CalculatorValues,
+  input: CalculatorValues,
   edited: CalculatorField,
   direction: Direction,
+  amountSource: PairSide,
 ): CalculatorValues {
+  const next = syncPair(input, AMOUNT_PAIR, amountSource)
   const amount = parseNumber(next.amount) ?? 0
   const openPrice = parseNumber(next.openPrice) ?? 0
   const leverage = clampLeverage(parseNumber(next.leverage) ?? LEVERAGE_DEFAULT)
@@ -60,6 +75,9 @@ function recalculate(
 export function useCalculator() {
   const [values, setValues] = useState<CalculatorValues>(INITIAL)
   const [direction, setDirectionState] = useState<Direction>(DIRECTION_DEFAULT)
+  // Which side of the margin pair was typed last. A ref, not state: it only
+  // steers the next recalculation and never needs a render of its own.
+  const amountSource = useRef<PairSide>(AMOUNT_SOURCE_DEFAULT)
 
   const setField = useCallback(
     (field: CalculatorField, raw: string) => {
@@ -69,7 +87,10 @@ export function useCalculator() {
         field === 'leverage' && parseNumber(raw) !== null
           ? String(clampLeverage(parseNumber(raw) as number))
           : raw
-      setValues((current) => recalculate({ ...current, [field]: value }, field, direction))
+      if (field === 'amount') amountSource.current = 'quote'
+      if (field === 'amountUnits') amountSource.current = 'units'
+      const source = amountSource.current
+      setValues((current) => recalculate({ ...current, [field]: value }, field, direction, source))
     },
     [direction],
   )
@@ -81,20 +102,28 @@ export function useCalculator() {
    */
   const setDirection = useCallback((next: Direction) => {
     setDirectionState(next)
-    setValues((current) => recalculate(current, 'closePrice', next))
+    const source = amountSource.current
+    setValues((current) => recalculate(current, 'closePrice', next, source))
   }, [])
 
   /** Fill an emptied leverage field back in once focus leaves it. */
   const normalizeLeverage = useCallback(() => {
+    const source = amountSource.current
     setValues((current) => {
       if (parseNumber(current.leverage) !== null) return current
-      return recalculate({ ...current, leverage: String(LEVERAGE_DEFAULT) }, 'leverage', direction)
+      return recalculate(
+        { ...current, leverage: String(LEVERAGE_DEFAULT) },
+        'leverage',
+        direction,
+        source,
+      )
     })
   }, [direction])
 
   const reset = useCallback(() => {
     setValues(INITIAL)
     setDirectionState(DIRECTION_DEFAULT)
+    amountSource.current = AMOUNT_SOURCE_DEFAULT
   }, [])
 
   /**

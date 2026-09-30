@@ -25,7 +25,16 @@
     "leverage": "Leverage",
     "pnl": "Profit / loss",
     "pnlHint": "Type a target here and the close price is solved for it.",
-    "reset": "Reset"
+    "reset": "Reset",
+    "tips": {
+      "amount": "Your own money put into the trade: the margin, in USDT. Leverage multiplies it into the position size. Type it here or in units of the asset — the other side follows at the open price.",
+      "openPrice": "The price the position is entered at.",
+      "closePrice": "The price you plan to exit at. Change it to see the profit or loss, or type a target into profit / loss and this is solved for you.",
+      "leverage": "How many times the position is larger than your margin. 10× turns 100 into a 1000 position: gains and losses both move ten times faster.",
+      "pnl": "Profit or loss when closing at the close price, before fees and funding. Long profits when the price rises, short when it falls.",
+      "amountUnits": "The same margin counted in units of the asset: USDT ÷ open price. Leverage does not change it. Type either side and the other follows."
+    },
+    "amountUnits": "Amount in asset"
   },
   "risk": {
     "heading": "What this position actually is",
@@ -36,7 +45,13 @@
     "liquidationMove": "Move to liquidation",
     "liquidationMoveNote": "Against you, from entry",
     "liquidationPrice": "Liquidation price",
-    "disclaimer": "Simplified: maintenance margin, fees and funding all bring liquidation closer than shown. Treat these as a ceiling, not a promise."
+    "disclaimer": "Simplified: maintenance margin, fees and funding all bring liquidation closer than shown. Treat these as a ceiling, not a promise.",
+    "tips": {
+      "positionSize": "Amount × leverage: how much of the asset you actually control. Fees and funding are charged on this, not on your amount.",
+      "roi": "Profit or loss as a percentage of the margin you put up. With leverage this moves far faster than the price itself.",
+      "liquidationMove": "How far the price can go against you before the whole margin is gone: roughly 100% ÷ leverage.",
+      "liquidationPrice": "The price at which the exchange would close the position and keep your margin. Below entry for a long, above it for a short."
+    }
   },
   "marquee": {
     "one": "Size before direction",
@@ -63,11 +78,67 @@
   "common": {
     "notFoundTitle": "Page not found",
     "notFoundBody": "That route does not exist.",
-    "goHome": "Back to the calculator"
+    "goHome": "Back to the calculator",
+    "hintFor": "About: {{label}}"
   },
   "direction": {
     "label": "Direction",
     "long": "Long",
     "short": "Short"
+  },
+  "mode": {
+    "label": "Market",
+    "futures": "Futures",
+    "spot": "Spot"
+  },
+  "spot": {
+    "titleLead": "Every buy moves",
+    "titleMarked": "your average.",
+    "titleTail": "See where it lands before you click.",
+    "intro": "Enter what you hold and the price you paid on average. Add a planned buy to see the new average, then set a sale price to see what the whole position would make.",
+    "holdingHeading": "Current position",
+    "quantity": "Units held",
+    "averagePrice": "Average price",
+    "buyHeading": "Planned buy",
+    "buyQuantity": "Units to buy",
+    "buyPrice": "Buy price",
+    "salePrice": "Sale price",
+    "salePriceHint": "The price you want to sell the whole position at.",
+    "resultHeading": "After the buy",
+    "newAverage": "New average price",
+    "wasAverage": "was {{price}}",
+    "noHolding": "no current position",
+    "totalQuantity": "Total units",
+    "totalQuantityNote": "+{{quantity}} from the buy",
+    "totalCost": "Total invested",
+    "totalCostNote": "Break-even at the new average",
+    "saleValue": "Sale value",
+    "saleValueNote": "Every unit at the sale price",
+    "pnl": "Profit / loss",
+    "pnlNote": "on invested",
+    "pnlWithoutBuy": "Without the buy",
+    "pnlWithoutBuyNote": "The buy changes it by {{delta}}",
+    "disclaimer": "Simplified: trading fees on the buy and the sale are not included, so the real break-even sits slightly above the average.",
+    "tips": {
+      "quantity": "How many units of the asset you hold right now, e.g. 0.5 BTC. Type it here or as the USDT invested — the other follows at the average price.",
+      "averagePrice": "What you paid per unit on average across all your previous buys. Exchanges usually call it average cost or entry price.",
+      "buyQuantity": "How many more units you plan to buy. Type it here or as the USDT to spend — the other follows at the buy price. Leave it at 0 to see just your current position.",
+      "buyPrice": "Price per unit for the planned buy. Buying below your average pulls it down; buying above pushes it up.",
+      "salePrice": "The price you want to exit at. The whole position is assumed sold here: the units you hold and the ones you plan to buy.",
+      "newAverage": "Total invested divided by total units. This is your break-even: selling above it is profit, below it is loss.",
+      "totalQuantity": "Units you hold now plus the units from the planned buy.",
+      "totalCost": "What all the units cost you: units held × average price, plus units bought × buy price.",
+      "saleValue": "Total units × sale price: what you would receive, before fees.",
+      "pnl": "Sale value minus total invested. The percentage is measured against total invested.",
+      "pnlWithoutBuy": "The same sale price applied to your current position only, so you can see whether the planned buy helps or hurts.",
+      "invested": "What your current units cost in total: units × average price. Type it here or as units — the other follows.",
+      "buyCost": "How much USDT the planned buy takes: units × buy price. Type it here or as units — the other follows."
+    },
+    "invested": "Invested",
+    "buyCost": "Buy cost"
+  },
+  "units": {
+    "asset": "units",
+    "quote": "USDT"
   }
 }

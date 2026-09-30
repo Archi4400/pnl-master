@@ -24,12 +24,10 @@ export function LeverageSlider({ value, onValueChange, min, max, label }: Levera
       step={1}
       className="relative flex h-5 w-full cursor-pointer touch-none items-center select-none"
     >
-      <Slider.Track className="relative h-1.5 w-full grow rounded-full bg-line">
-        <Slider.Range className="absolute h-full rounded-full bg-lime" />
+      <Slider.Track className="bg-line relative h-1.5 w-full grow rounded-full">
+        <Slider.Range className="bg-lime absolute h-full rounded-full" />
       </Slider.Track>
-      <Slider.Thumb
-        className="block size-4 rounded-full border-2 border-lime bg-surface-raised shadow-sm transition-transform duration-150 ease-brand hover:scale-115 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
-      />
+      <Slider.Thumb className="border-lime bg-surface-raised ease-brand focus-visible:outline-lime block size-4 rounded-full border-2 shadow-sm transition-transform duration-150 hover:scale-115 focus-visible:outline-2 focus-visible:outline-offset-2" />
     </Slider.Root>
   )
 }

@@ -63,7 +63,7 @@ export function CalculatorPage() {
           </h1>
 
           <p
-            className="animate-rise max-w-[46ch] self-end text-content-muted"
+            className="animate-rise text-content-muted max-w-[46ch] self-end"
             style={{ animationDelay: '120ms' }}
           >
             {t(`${copy}.intro`)}
@@ -85,17 +85,18 @@ export function CalculatorPage() {
             className="w-full max-w-xs"
           />
 
-          {mode === 'spot' ? <SpotCalculator /> : <FuturesCalculator />}
+          {/* Both stay mounted so switching modes does not wipe what was typed. */}
+          <div hidden={mode !== 'futures'}>
+            <FuturesCalculator />
+          </div>
+          <div hidden={mode !== 'spot'}>
+            <SpotCalculator />
+          </div>
         </div>
       </section>
 
       <Marquee
-        items={[
-          t('marquee.one'),
-          t('marquee.two'),
-          t('marquee.three'),
-          t('marquee.four'),
-        ]}
+        items={[t('marquee.one'), t('marquee.two'), t('marquee.three'), t('marquee.four')]}
       />
 
       <InfoSection />
@@ -118,7 +119,7 @@ function FuturesCalculator() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <div className="flex flex-col gap-7 rounded-card border border-line bg-surface-raised p-5 sm:p-7">
+      <div className="rounded-card border-line bg-surface-raised flex flex-col gap-7 border p-5 sm:p-7">
         <div className="flex items-center justify-between gap-4">
           <SectionLabel index="01">{t('calculator.inputs')}</SectionLabel>
           <Button variant="ghost" size="sm" onClick={reset} className="-mr-2">
@@ -140,29 +141,44 @@ function FuturesCalculator() {
           <NumberField
             id="amount"
             label={t('calculator.amount')}
+            tooltip={t('calculator.tips.amount')}
             value={values.amount}
             onValueChange={(next) => setField('amount', next)}
+            suffix={t('units.quote')}
+          />
+          <NumberField
+            id="amount-units"
+            label={t('calculator.amountUnits')}
+            tooltip={t('calculator.tips.amountUnits')}
+            value={values.amountUnits}
+            onValueChange={(next) => setField('amountUnits', next)}
+            suffix={t('units.asset')}
           />
           <NumberField
             id="open-price"
             label={t('calculator.openPrice')}
+            tooltip={t('calculator.tips.openPrice')}
             value={values.openPrice}
             onValueChange={(next) => setField('openPrice', next)}
           />
           <NumberField
             id="close-price"
             label={t('calculator.closePrice')}
+            tooltip={t('calculator.tips.closePrice')}
             value={values.closePrice}
             onValueChange={(next) => setField('closePrice', next)}
           />
-          <NumberField
-            id="leverage"
-            label={t('calculator.leverage')}
-            value={values.leverage}
-            onValueChange={(next) => setField('leverage', next)}
-            onBlur={normalizeLeverage}
-            suffix="×"
-          />
+          <div className="sm:col-span-2">
+            <NumberField
+              id="leverage"
+              label={t('calculator.leverage')}
+              tooltip={t('calculator.tips.leverage')}
+              value={values.leverage}
+              onValueChange={(next) => setField('leverage', next)}
+              onBlur={normalizeLeverage}
+              suffix="×"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-2.5">
@@ -173,19 +189,21 @@ function FuturesCalculator() {
             min={LEVERAGE_MIN}
             max={LEVERAGE_MAX}
           />
-          <div className="flex justify-between font-mono text-[10px] tracking-wider text-content-faint">
+          <div className="text-content-faint flex justify-between font-mono text-[10px] tracking-wider">
             <span>{LEVERAGE_MIN}×</span>
             <span>{LEVERAGE_MAX}×</span>
           </div>
         </div>
 
-        <div className="border-t border-line pt-6">
+        <div className="border-line border-t pt-6">
           <NumberField
             id="pnl"
             label={t('calculator.pnl')}
+            tooltip={t('calculator.tips.pnl')}
             value={values.pnl}
             onValueChange={(next) => setField('pnl', next)}
             tone="auto"
+            allowNegative
             size="lg"
             hint={t('calculator.pnlHint')}
           />
@@ -193,20 +211,22 @@ function FuturesCalculator() {
       </div>
 
       {/* Live risk readout, derived from the same inputs */}
-      <div className="flex flex-col gap-5 rounded-card bg-surface-invert p-5 text-content-invert sm:p-7">
-        <SectionLabel index="02" className="text-content-invert/55">
+      <div className="rounded-card bg-surface-invert text-content-invert flex flex-col gap-5 p-5 sm:p-7">
+        <SectionLabel index="02" tone="invert" className="text-content-invert/55">
           {t('risk.heading')}
         </SectionLabel>
 
         <dl className="flex flex-col">
           <SpecRow
             label={t('risk.positionSize')}
+            tooltip={t('risk.tips.positionSize')}
             value={formatNumber(size, 2)}
             note={t('risk.positionSizeNote', { leverage: formatNumber(parsed.leverage, 0) })}
             className="border-content-invert/15"
           />
           <SpecRow
             label={t('risk.roi')}
+            tooltip={t('risk.tips.roi')}
             value={
               roi === null ? (
                 dash
@@ -221,6 +241,7 @@ function FuturesCalculator() {
           />
           <SpecRow
             label={t('risk.liquidationMove')}
+            tooltip={t('risk.tips.liquidationMove')}
             value={
               liqMove === null ? (
                 dash
@@ -235,13 +256,14 @@ function FuturesCalculator() {
           />
           <SpecRow
             label={t('risk.liquidationPrice')}
+            tooltip={t('risk.tips.liquidationPrice')}
             value={liqPrice === null ? dash : formatNumber(liqPrice, 4)}
             note={t(`direction.${direction}`)}
             className="border-content-invert/15"
           />
         </dl>
 
-        <p className="mt-auto border-t border-content-invert/15 pt-4 text-xs leading-relaxed text-content-invert/55">
+        <p className="border-content-invert/15 text-content-invert/55 mt-auto border-t pt-4 text-xs leading-relaxed">
           {t('risk.disclaimer')}
         </p>
       </div>
@@ -267,7 +289,7 @@ function InfoSection() {
         <h2 className="text-[clamp(1.9rem,4.4vw,3rem)] leading-[1.02] font-medium tracking-[-0.03em] text-balance">
           {t('info.titleLead')} <Marker>{t('info.titleMarked')}</Marker>
         </h2>
-        <p className="max-w-[46ch] self-end text-content-muted">{t('info.intro')}</p>
+        <p className="text-content-muted max-w-[46ch] self-end">{t('info.intro')}</p>
       </div>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -276,16 +298,16 @@ function InfoSection() {
             key={card.index}
             data-reveal
             className={cn(
-              'flex flex-col gap-3 rounded-card border border-line bg-surface-raised p-6',
-              'transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-content',
+              'rounded-card border-line bg-surface-raised flex flex-col gap-3 border p-6',
+              'ease-brand hover:border-content transition-all duration-300 hover:-translate-y-1',
               // Reveal on scroll rather than on load: these sit below the fold.
               revealed ? 'animate-rise' : 'opacity-0',
             )}
             style={{ animationDelay: `${i * 90}ms` }}
           >
-            <span className="font-mono text-xs tracking-widest text-lime">{card.index}</span>
+            <span className="text-lime font-mono text-xs tracking-widest">{card.index}</span>
             <h3 className="text-lg font-semibold tracking-tight">{card.title}</h3>
-            <p className="text-sm leading-relaxed text-content-muted">{card.body}</p>
+            <p className="text-content-muted text-sm leading-relaxed">{card.body}</p>
           </article>
         ))}
       </div>

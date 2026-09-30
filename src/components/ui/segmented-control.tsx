@@ -46,13 +46,13 @@ export function SegmentedControl({
       onValueChange={(next) => next && onValueChange(next)}
       aria-label={label}
       className={cn(
-        'relative flex rounded-full border border-line bg-surface-raised p-1',
+        'border-line bg-surface-raised relative flex rounded-full border p-1',
         className,
       )}
     >
       <span
         aria-hidden
-        className="absolute inset-y-1 left-1 rounded-full bg-lime transition-transform duration-300 ease-brand"
+        className="bg-lime ease-brand absolute inset-y-1 left-1 rounded-full transition-transform duration-300"
         style={{
           width: `calc((100% - 0.5rem) / ${options.length})`,
           transform: `translateX(${activeIndex * 100}%)`,
@@ -67,9 +67,9 @@ export function SegmentedControl({
           className={cn(
             'relative z-10 flex h-8 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3',
             'font-mono text-[11px] tracking-wider uppercase',
-            'text-content-muted transition-colors duration-200 hover:text-content',
+            'text-content-muted hover:text-content transition-colors duration-200',
             'data-[state=on]:text-lime-ink data-[state=on]:hover:text-lime-ink',
-            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime',
+            'focus-visible:outline-lime focus-visible:outline-2 focus-visible:outline-offset-2',
           )}
         >
           {option.label}

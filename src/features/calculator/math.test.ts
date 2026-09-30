@@ -6,27 +6,68 @@ import {
   computePnl,
   formatNumber,
   parseNumber,
+  sanitizeNumberInput,
 } from './math'
 
 describe('computePnl', () => {
   it('returns the gain of a profitable long', () => {
-    expect(computePnl({ amount: 1000, openPrice: 100, closePrice: 110, leverage: 1, direction: 'long' as const })).toBe(100)
+    expect(
+      computePnl({
+        amount: 1000,
+        openPrice: 100,
+        closePrice: 110,
+        leverage: 1,
+        direction: 'long' as const,
+      }),
+    ).toBe(100)
   })
 
   it('scales linearly with leverage', () => {
-    expect(computePnl({ amount: 1000, openPrice: 100, closePrice: 110, leverage: 10, direction: 'long' as const })).toBe(1000)
+    expect(
+      computePnl({
+        amount: 1000,
+        openPrice: 100,
+        closePrice: 110,
+        leverage: 10,
+        direction: 'long' as const,
+      }),
+    ).toBe(1000)
   })
 
   it('returns a negative number when the price falls', () => {
-    expect(computePnl({ amount: 1000, openPrice: 100, closePrice: 90, leverage: 1, direction: 'long' as const })).toBe(-100)
+    expect(
+      computePnl({
+        amount: 1000,
+        openPrice: 100,
+        closePrice: 90,
+        leverage: 1,
+        direction: 'long' as const,
+      }),
+    ).toBe(-100)
   })
 
   it('is zero when the price does not move', () => {
-    expect(computePnl({ amount: 1000, openPrice: 100, closePrice: 100, leverage: 20, direction: 'long' as const })).toBe(0)
+    expect(
+      computePnl({
+        amount: 1000,
+        openPrice: 100,
+        closePrice: 100,
+        leverage: 20,
+        direction: 'long' as const,
+      }),
+    ).toBe(0)
   })
 
   it('refuses an open price of zero rather than dividing by it', () => {
-    expect(computePnl({ amount: 1000, openPrice: 0, closePrice: 110, leverage: 1, direction: 'long' as const })).toBeNull()
+    expect(
+      computePnl({
+        amount: 1000,
+        openPrice: 0,
+        closePrice: 110,
+        leverage: 1,
+        direction: 'long' as const,
+      }),
+    ).toBeNull()
   })
 })
 
@@ -39,7 +80,13 @@ describe('computePnl — short', () => {
 
   it('loses when the price rises', () => {
     expect(
-      computePnl({ amount: 1000, openPrice: 100, closePrice: 110, leverage: 1, direction: 'short' }),
+      computePnl({
+        amount: 1000,
+        openPrice: 100,
+        closePrice: 110,
+        leverage: 1,
+        direction: 'short',
+      }),
     ).toBe(-100)
   })
 
@@ -61,7 +108,9 @@ describe('computeClosePrice', () => {
   })
 
   it('solves for a loss', () => {
-    expect(computeClosePrice({ amount: 1000, openPrice: 100, leverage: 1, direction: 'long' }, -250)).toBe(75)
+    expect(
+      computeClosePrice({ amount: 1000, openPrice: 100, leverage: 1, direction: 'long' }, -250),
+    ).toBe(75)
   })
 
   it('solves upwards for a short loss', () => {
@@ -79,7 +128,9 @@ describe('computeClosePrice', () => {
   })
 
   it('returns null when nothing is at stake', () => {
-    expect(computeClosePrice({ amount: 0, openPrice: 100, leverage: 10, direction: 'long' }, 50)).toBeNull()
+    expect(
+      computeClosePrice({ amount: 0, openPrice: 100, leverage: 10, direction: 'long' }, 50),
+    ).toBeNull()
   })
 })
 
@@ -110,6 +161,27 @@ describe('parseNumber', () => {
 
   it('rejects text', () => {
     expect(parseNumber('abc')).toBeNull()
+  })
+})
+
+describe('sanitizeNumberInput', () => {
+  it.each(['', '0', '12', '12.', '12.5', '12,5', '.5'])('lets %j through', (raw) => {
+    expect(sanitizeNumberInput(raw)).toBe(raw)
+  })
+
+  it.each(['abc', '12a', '1e5', '1.2.3', '1,2.3', '+5', '-5'])('rejects %j', (raw) => {
+    expect(sanitizeNumberInput(raw)).toBeNull()
+  })
+
+  it('drops whitespace from pasted numbers', () => {
+    expect(sanitizeNumberInput(' 1 000.5 ')).toBe('1000.5')
+  })
+
+  it('allows a leading minus only when asked to', () => {
+    expect(sanitizeNumberInput('-', { allowNegative: true })).toBe('-')
+    expect(sanitizeNumberInput('-12.5', { allowNegative: true })).toBe('-12.5')
+    expect(sanitizeNumberInput('1-2', { allowNegative: true })).toBeNull()
+    expect(sanitizeNumberInput('--1', { allowNegative: true })).toBeNull()
   })
 })
 
