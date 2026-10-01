@@ -41,14 +41,15 @@ const SELL = 'var(--color-chart-2)'
 type SidePalette = { buy: string; sell: string }
 const SIDE_COLORS: SidePalette = { buy: BUY, sell: SELL }
 const VOLUME_COLORS: SidePalette = { buy: 'var(--color-chart-buy)', sell: 'var(--color-loss)' }
-const SERIES = [
-  'var(--color-chart-1)',
-  'var(--color-chart-2)',
-  'var(--color-chart-3)',
-  'var(--color-chart-4)',
-  'var(--color-chart-5)',
-  'var(--color-chart-6)',
-  'var(--color-chart-7)',
+/** The allocation donut's earthy palette (--color-alloc-* in index.css), in fixed order. */
+const ALLOCATION = [
+  'var(--color-alloc-1)',
+  'var(--color-alloc-2)',
+  'var(--color-alloc-3)',
+  'var(--color-alloc-4)',
+  'var(--color-alloc-5)',
+  'var(--color-alloc-6)',
+  'var(--color-alloc-7)',
 ]
 const OTHER = 'var(--color-chart-other)'
 const SURFACE = 'var(--color-surface-raised)'
@@ -215,7 +216,7 @@ export function AllocationDonut({
       name: item.asset,
       value: item.invested,
       qty: item.qty,
-      color: SERIES[index] as string,
+      color: ALLOCATION[index] as string,
     })),
     ...(rest > 0 ? [{ name: t('journal.charts.other'), value: rest, color: OTHER }] : []),
   ]

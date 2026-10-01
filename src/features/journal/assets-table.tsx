@@ -1,12 +1,15 @@
-import { ArrowDown, ArrowUp, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, Calculator, ChevronRight, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { SignedValue } from '@/components/ui/signed-value'
+import { Tooltip } from '@/components/ui/tooltip'
 import { CoinIcon } from '@/features/market/coin-icon'
 import { formatSigned, NO_VALUE } from '@/lib/number'
 import { cn } from '@/lib/utils'
 
+import { calculatorLink } from './calculator-link'
 import { formatMoney, formatMoneySigned, formatQty, formatUnitPrice } from './format'
 import { pairPrice, type PriceState } from './prices'
 import { unrealizedPct, unrealizedPnl, type PairKey, type PairStats } from './stats'
@@ -22,6 +25,12 @@ type SortKey =
   | 'unrealized'
   | 'unrealizedPct'
 type Sort = { key: SortKey; dir: 'asc' | 'desc' }
+
+/**
+ * Realized PnL is hidden for now; flip this to bring the column back. The
+ * figure is still computed and shown in the asset detail.
+ */
+const SHOW_REALIZED = false
 
 type Row = {
   pair: PairStats
@@ -98,7 +107,7 @@ export function AssetsTable({
       .sort((a, b) => compareRows(a, b, sort))
   }, [pairs, query, sort, priceState.prices])
 
-  const columns: { key: SortKey; label: string; align: 'left' | 'right' }[] = [
+  const allColumns: { key: SortKey; label: string; align: 'left' | 'right' }[] = [
     { key: 'pair', label: t('journal.assets.pair'), align: 'left' },
     { key: 'position', label: t('journal.assets.position'), align: 'right' },
     { key: 'avgPrice', label: `${t('journal.assets.avgPrice')}, ${quote}`, align: 'right' },
@@ -109,6 +118,9 @@ export function AssetsTable({
     { key: 'unrealized', label: `${t('journal.assets.unrealized')}, ${quote}`, align: 'right' },
     { key: 'unrealizedPct', label: `${t('journal.assets.unrealized')}, %`, align: 'right' },
   ]
+  const columns = SHOW_REALIZED
+    ? allColumns
+    : allColumns.filter((column) => column.key !== 'realized')
 
   const toggleSort = (key: SortKey) =>
     setSort((current) =>
@@ -178,6 +190,9 @@ export function AssetsTable({
                   </button>
                 </th>
               ))}
+              <th scope="col" className="px-2.5 py-3">
+                <span className="sr-only">{t('journal.assets.actions')}</span>
+              </th>
               {/* The chevron column is decoration; the pair button names the row. */}
               <th scope="col" className="w-8" aria-hidden />
             </tr>
@@ -193,18 +208,27 @@ export function AssetsTable({
                 )}
               >
                 <td className="px-2.5 py-3">
-                  {/* The pair cell holds the real control; the row highlight just follows it. */}
-                  <button
-                    type="button"
-                    onClick={() => onSelect(pair.key)}
-                    aria-label={t('journal.assets.open', { pair: pair.key })}
-                    aria-current={selected === pair.key ? 'true' : undefined}
-                    className="flex cursor-pointer items-center gap-2.5 text-left after:absolute after:inset-0 focus-visible:outline-none"
+                  {/* The pair cell holds the real control; the row highlight just follows it.
+                      Its ::after covers the whole row, so hovering anywhere on the
+                      row opens this tooltip, anchored at the pair name. */}
+                  <Tooltip
+                    content={t('journal.assets.openHint', { pair: pair.base })}
+                    align="start"
                   >
-                    <CoinIcon symbol={pair.base} size={22} />
-                    <span className="font-semibold">{pair.base}</span>
-                    <span className="text-content-faint font-mono text-[11px]">/{pair.quote}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(pair.key)}
+                      aria-label={t('journal.assets.open', { pair: pair.key })}
+                      aria-current={selected === pair.key ? 'true' : undefined}
+                      className="flex cursor-pointer items-center gap-2.5 text-left after:absolute after:inset-0 focus-visible:outline-none"
+                    >
+                      <CoinIcon symbol={pair.base} size={22} />
+                      <span className="font-semibold">{pair.base}</span>
+                      <span className="text-content-faint font-mono text-[11px]">
+                        /{pair.quote}
+                      </span>
+                    </button>
+                  </Tooltip>
                 </td>
                 <td className="px-2.5 py-3 text-right tabular-nums">
                   {pair.position.eq(0) ? (
@@ -230,11 +254,13 @@ export function AssetsTable({
                   {formatMoney(pair.invested, pair.quote, locale)}
                 </td>
                 <td className="px-2.5 py-3 text-right tabular-nums">{pair.trades.length}</td>
-                <td className="px-2.5 py-3 text-right tabular-nums">
-                  <SignedValue value={pair.realizedPnl.toNumber()}>
-                    {formatMoneySigned(pair.realizedPnl, pair.quote, locale)}
-                  </SignedValue>
-                </td>
+                {SHOW_REALIZED ? (
+                  <td className="px-2.5 py-3 text-right tabular-nums">
+                    <SignedValue value={pair.realizedPnl.toNumber()}>
+                      {formatMoneySigned(pair.realizedPnl, pair.quote, locale)}
+                    </SignedValue>
+                  </td>
+                ) : null}
                 <td className="px-2.5 py-3 text-right tabular-nums">
                   {unrealized === null ? (
                     <span className="text-content-faint">{NO_VALUE}</span>
@@ -253,6 +279,9 @@ export function AssetsTable({
                     </SignedValue>
                   )}
                 </td>
+                <td className="px-2.5 py-3 text-center">
+                  <CalculatorAction pair={pair} price={price} />
+                </td>
                 <td className="text-content-faint group-hover:text-content pr-3">
                   <ChevronRight className="size-4" aria-hidden />
                 </td>
@@ -267,5 +296,25 @@ export function AssetsTable({
         ) : null}
       </div>
     </div>
+  )
+}
+
+/** Opens the spot calculator prefilled with this position; nothing for a flat one. */
+function CalculatorAction({ pair, price }: { pair: PairStats; price: number | undefined }) {
+  const { t } = useTranslation()
+  const to = calculatorLink(pair, price)
+  if (!to) return null
+
+  return (
+    <Tooltip content={t('journal.assets.calculatorHint', { pair: pair.base })}>
+      <Link
+        to={to}
+        aria-label={t('journal.assets.openCalculator', { pair: pair.base })}
+        // relative z-10: sits above the row-wide click target of the pair button.
+        className="border-line text-content-muted hover:border-lime hover:bg-lime hover:text-lime-ink focus-visible:ring-lime/40 relative z-10 inline-flex size-8 items-center justify-center rounded-full border transition-colors focus-visible:ring-4 focus-visible:outline-none"
+      >
+        <Calculator className="size-4" aria-hidden />
+      </Link>
+    </Tooltip>
   )
 }

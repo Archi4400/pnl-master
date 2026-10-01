@@ -291,7 +291,11 @@
       "unrealized": "Unrealized",
       "empty": "No coin matches “{{query}}”.",
       "sortBy": "Sort by {{column}}",
-      "open": "Open details for {{pair}}"
+      "open": "Open details for {{pair}}",
+      "actions": "Actions",
+      "openCalculator": "Open {{pair}} in the calculator",
+      "openHint": "Click to open {{pair}} analytics: position, average, price chart and every trade.",
+      "calculatorHint": "Open the spot calculator with this {{pair}} position filled in: units held, average entry and the current price. Then try a buy or a sale price."
     },
     "metrics": {
       "bought": "Bought",

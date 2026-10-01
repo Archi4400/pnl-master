@@ -66,6 +66,19 @@
   --color-chart-7: var(--chart-7);
   --color-chart-other: var(--chart-other);
 
+  /* "Where the money went": muted, earthy hues that sit with the lime, ink and
+     cream instead of competing with them. Same order in both themes so a coin
+     keeps its hue; each theme re-steps lightness for its ground. Validated
+     (dataviz validate_palette.js) on --surface-raised: lightness band, chroma
+     floor, adjacent CVD ΔE ≥ 11.8, normal-vision ΔE ≥ 18.1, contrast ≥ 3:1. */
+  --color-alloc-1: var(--alloc-1);
+  --color-alloc-2: var(--alloc-2);
+  --color-alloc-3: var(--alloc-3);
+  --color-alloc-4: var(--alloc-4);
+  --color-alloc-5: var(--alloc-5);
+  --color-alloc-6: var(--alloc-6);
+  --color-alloc-7: var(--alloc-7);
+
   --radius-card: 24px;
   --radius-brand: 22px;
 
@@ -103,7 +116,14 @@
   --chart-6: #008300;
   --chart-7: #4a3aa7;
   --chart-other: #8a867b;
-  --chart-buy: #5c7a00; /* same as the light theme's --profit; not overridden in dark */
+  --alloc-1: #008300; /* moss */
+  --alloc-2: #a06193; /* plum */
+  --alloc-3: #83600a; /* ochre */
+  --alloc-4: #467eb6; /* slate */
+  --alloc-5: #874124; /* terracotta */
+  --alloc-6: #158e77; /* sage */
+  --alloc-7: #893c3f; /* clay */
+  --chart-buy: #c6ff00; /* same as the light theme's --profit; not overridden in dark */
 }
 
 :root.dark {
@@ -129,6 +149,13 @@
   --chart-6: #008300;
   --chart-7: #9085e9;
   --chart-other: #7a776e;
+  --alloc-1: #61792f; /* moss */
+  --alloc-2: #ba79ac; /* plum */
+  --alloc-3: #8e6714; /* ochre */
+  --alloc-4: #5e97d0; /* slate */
+  --alloc-5: #a1583b; /* terracotta */
+  --alloc-6: #3aa78e; /* sage */
+  --alloc-7: #a35355; /* clay */
 }
 
 @keyframes rise {
