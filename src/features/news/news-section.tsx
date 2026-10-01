@@ -66,7 +66,8 @@ export function NewsSection() {
   return (
     <section
       ref={ref}
-      className="mx-auto w-full max-w-6xl px-5 pt-20 pb-4"
+      id="news"
+      className="mx-auto w-full max-w-6xl scroll-mt-16 px-5 pt-20 pb-4"
       aria-labelledby="news-heading"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">

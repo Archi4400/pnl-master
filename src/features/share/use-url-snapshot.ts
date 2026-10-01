@@ -11,6 +11,29 @@ import { encodeSnapshot, type Snapshot } from './snapshot'
 const WRITE_DELAY_MS = 300
 
 /**
+ * The last calculation, kept for this tab. Leaving for another page and coming
+ * back through the menu lands on a bare "/", which would otherwise reset the
+ * calculator; sessionStorage brings the numbers back without outliving the tab.
+ */
+const LAST_QUERY_KEY = 'pnl-master:last-calculation'
+
+export function recallLastQuery(): URLSearchParams {
+  try {
+    return new URLSearchParams(sessionStorage.getItem(LAST_QUERY_KEY) ?? '')
+  } catch {
+    return new URLSearchParams()
+  }
+}
+
+function rememberQuery(query: string) {
+  try {
+    sessionStorage.setItem(LAST_QUERY_KEY, query)
+  } catch {
+    // Not remembering it only costs the convenience.
+  }
+}
+
+/**
  * Keep the address bar equal to the calculation on screen, so a refresh, a
  * bookmark or a copied URL always reopens exactly what the user sees.
  *
@@ -32,6 +55,7 @@ export function useUrlSnapshot(snapshot: Snapshot) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      rememberQuery(query)
       if (window.location.search.slice(1) === query) return
       setParams.current(new URLSearchParams(query), { replace: true, preventScrollReset: true })
     }, WRITE_DELAY_MS)

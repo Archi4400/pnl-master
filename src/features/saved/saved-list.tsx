@@ -25,7 +25,11 @@ export function SavedList({ onLoad }: SavedListProps) {
   })
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-5 pb-16" aria-labelledby="saved-heading">
+    <section
+      id="saved"
+      className="mx-auto w-full max-w-6xl scroll-mt-24 px-5 pb-16"
+      aria-labelledby="saved-heading"
+    >
       <div className="flex items-baseline justify-between gap-4">
         <SectionLabel>
           <span id="saved-heading">{t('saved.heading')}</span>

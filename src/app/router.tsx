@@ -11,6 +11,13 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       { index: true, Component: CalculatorPage },
+      {
+        path: 'journal',
+        // Code-split: the charting library ships only to people who open it.
+        lazy: {
+          Component: async () => (await import('@/pages/journal-page')).JournalPage,
+        },
+      },
       { path: '*', Component: NotFoundPage },
     ],
   },

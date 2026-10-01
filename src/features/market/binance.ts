@@ -11,7 +11,10 @@ const API = 'https://data-api.binance.vision/api/v3'
 
 export const QUOTE_ASSET = 'USDT'
 
-/** Shown before the user types a search, roughly by market cap. */
+/**
+ * Twenty well-known coins, roughly by market cap: the top of the coin picker
+ * before any search, and the price ticker on the home page.
+ */
 export const POPULAR_ASSETS = [
   'BTC',
   'ETH',
@@ -25,6 +28,14 @@ export const POPULAR_ASSETS = [
   'AVAX',
   'LINK',
   'SUI',
+  'DOT',
+  'LTC',
+  'BCH',
+  'NEAR',
+  'APT',
+  'ARB',
+  'OP',
+  'PEPE',
 ] as const
 
 type TickerPrice = { symbol: string; price: string }
@@ -42,22 +53,33 @@ async function getJson(url: string, signal?: AbortSignal): Promise<unknown> {
 }
 
 /**
- * Every USDT pair's last price, keyed by base asset (BTC → 64000).
+ * The last price of every pair, keyed by symbol ("BTCUSDT" → 64000).
  *
- * One request (~160 KB) feeds both the coin search and its prices, which beats
- * fetching exchangeInfo (several MB) just to list symbols.
+ * One request (~160 KB) covers everything, which beats fetching exchangeInfo
+ * (several MB) just to list symbols, and cannot fail the way a symbols=[…]
+ * batch does when one pair in it has been delisted.
  */
-export async function fetchUsdtPrices(signal?: AbortSignal): Promise<Map<string, number>> {
+export async function fetchAllPrices(signal?: AbortSignal): Promise<Map<string, number>> {
   const data = await getJson(`${API}/ticker/price`, signal)
   if (!Array.isArray(data)) throw new Error('Unexpected ticker list')
 
   const prices = new Map<string, number>()
   for (const ticker of data) {
-    if (!isTickerPrice(ticker) || !ticker.symbol.endsWith(QUOTE_ASSET)) continue
-    const base = ticker.symbol.slice(0, -QUOTE_ASSET.length)
+    if (!isTickerPrice(ticker)) continue
     const price = Number(ticker.price)
     // Delisted pairs linger in the list with a zero price.
-    if (base && Number.isFinite(price) && price > 0) prices.set(base, price)
+    if (Number.isFinite(price) && price > 0) prices.set(ticker.symbol, price)
+  }
+  return prices
+}
+
+/** Every USDT pair's last price, keyed by base asset (BTC → 64000). */
+export async function fetchUsdtPrices(signal?: AbortSignal): Promise<Map<string, number>> {
+  const prices = new Map<string, number>()
+  for (const [symbol, price] of await fetchAllPrices(signal)) {
+    if (symbol.length > QUOTE_ASSET.length && symbol.endsWith(QUOTE_ASSET)) {
+      prices.set(symbol.slice(0, -QUOTE_ASSET.length), price)
+    }
   }
 
   // Retired leveraged tokens (ETHUP, BTCDOWN…) still report a price. A suffix

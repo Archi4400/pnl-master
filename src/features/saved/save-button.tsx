@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { notify } from '@/lib/notify'
 import type { Snapshot } from '@/features/share/snapshot'
 
 import { describeSnapshot } from './describe'
@@ -38,12 +39,14 @@ export function SaveButton({ snapshot, pnl }: SaveButtonProps) {
   const fallbackName = describeSnapshot(snapshot, t).title
 
   const save = () => {
-    const ok = addSaved({ name: name.trim() || fallbackName, snapshot, pnl })
+    const savedName = name.trim() || fallbackName
+    const ok = addSaved({ name: savedName, snapshot, pnl })
     setFailed(!ok)
     if (!ok) return
     setOpen(false)
     setName('')
     setJustSaved(true)
+    notify.success({ title: t('saved.toast', { name: savedName }), body: t('saved.toastHint') })
   }
 
   return (

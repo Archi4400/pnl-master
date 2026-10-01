@@ -57,12 +57,6 @@
       "liquidationPrice": "The price at which the exchange would close the position and keep your margin. Below entry for a long, above it for a short."
     }
   },
-  "marquee": {
-    "one": "Size before direction",
-    "two": "Survive the drawdown",
-    "three": "Leverage is a deadline",
-    "four": "Know your exit first"
-  },
   "info": {
     "eyebrow": "Leverage, plainly",
     "titleLead": "Three things leverage does that",
@@ -157,7 +151,8 @@
     "noResults": "No coin with that ticker on Binance",
     "source": "Live prices from Binance, quoted in USDT.",
     "use": "use",
-    "label": "Market"
+    "label": "Market",
+    "ticker": "Live prices of popular coins"
   },
   "share": {
     "share": "Share",
@@ -166,7 +161,9 @@
     "linkLabel": "Link to this calculation",
     "hint": "Anyone opening it sees these exact inputs. The address bar always holds the same link, so a refresh or bookmark keeps them too.",
     "title": "Link to this calculation",
-    "copy": "Copy"
+    "copy": "Copy",
+    "copiedToast": "Link copied to the clipboard",
+    "copyFailedToast": "Could not copy automatically"
   },
   "saved": {
     "heading": "Saved calculations",
@@ -176,7 +173,9 @@
     "failed": "Could not save: browser storage is full or disabled.",
     "empty": "Nothing saved yet. Press Save on a calculator to keep it here, then load it back any time.",
     "load": "Load",
-    "remove": "Delete \"{{name}}\""
+    "remove": "Delete \"{{name}}\"",
+    "toast": "Saved “{{name}}”",
+    "toastHint": "Find it under Saved calculations."
   },
   "news": {
     "poweredBy": "News by NewsData.io",
@@ -191,5 +190,180 @@
     "titleLead": "What moved crypto",
     "titleMarked": "today.",
     "intro": "The latest headlines, refreshed every 15 minutes. Each one opens the original story in a new tab."
+  },
+  "nav": {
+    "label": "Sections",
+    "journal": "Trade journal",
+    "menu": "Menu",
+    "sections": {
+      "calculator": "Calculator",
+      "news": "News"
+    },
+    "home": "PnL Master — home"
+  },
+  "journal": {
+    "eyebrow": "Trade journal",
+    "titleLead": "Your Binance trades,",
+    "titleMarked": "counted.",
+    "titleTail": "Averages, PnL and fees per coin.",
+    "intro": "Import your spot trade history as a CSV. It is read in your browser and stays there: nothing is uploaded anywhere.",
+    "import": {
+      "drop": "Drop your Binance CSV here",
+      "or": "or",
+      "choose": "Choose CSV file",
+      "parsing": "Reading {{name}}…",
+      "privacy": "The file never leaves your device.",
+      "howTitle": "How to export it from Binance",
+      "step1": "Open Binance and go to Orders → Spot Order. Trade History is best (it includes fees); Order History works too.",
+      "step2": "Press Export, pick the period and generate the file. Binance limits how long one export can be, so choose the widest range you need.",
+      "step3": "Download the CSV when it is ready and drop it here. A new import replaces the previous one."
+    },
+    "errors": {
+      "title": "This file could not be imported",
+      "empty": "The file is empty.",
+      "unrecognized": "This does not look like a Binance spot export. Expected Trade History columns (Date(UTC), Pair, Side, Price, Executed, Amount, Fee) or Order History columns (Time, Pair, Side, Executed, Average Price, Trading total, Status).",
+      "no-trades": "The columns look right, but none of the rows could be read as trades.",
+      "too-large": "The file is larger than 20 MB, which is far more than a trade history should be.",
+      "read": "The browser could not read the file. Try choosing it again.",
+      "quota": "The trades were read but are too many to keep in this browser’s storage. Try exporting a shorter period.",
+      "unavailable": "The trades were read but this browser does not allow saving them (storage is disabled).",
+      "dismiss": "Dismiss"
+    },
+    "result": {
+      "imported_one": "Imported {{count}} trade.",
+      "imported_other": "Imported {{count}} trades.",
+      "skipped_one": "{{count}} row could not be read and was skipped:",
+      "skipped_other": "{{count}} rows could not be read and were skipped:",
+      "skippedStored_one": "{{count}} row was skipped when this file was imported.",
+      "skippedStored_other": "{{count}} rows were skipped when this file was imported.",
+      "line": "line {{line}}",
+      "more": "and {{count}} more",
+      "reason": {
+        "date": "unreadable date",
+        "pair": "unknown pair",
+        "side": "not a buy or sell",
+        "number": "unreadable amount",
+        "unfilled": "order not filled"
+      },
+      "noFees": "Order History exports carry no fees, so fees count as zero here. A Trade History export includes them."
+    },
+    "toolbar": {
+      "file": "{{name}} · imported {{date}}",
+      "newFile": "Import new CSV",
+      "reset": "Reset data",
+      "replaceTitle": "Replace the imported trades?",
+      "replaceBody": "The new file replaces everything imported so far. Trades are not merged.",
+      "replaceConfirm": "Choose file",
+      "resetTitle": "Delete the imported trades?",
+      "resetBody": "This clears them from this browser. The CSV file itself is untouched and can be imported again.",
+      "resetConfirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "overview": {
+      "heading": "Portfolio",
+      "quote": "Quote currency",
+      "trades": "Trades",
+      "invested": "Invested",
+      "received": "Received",
+      "realized": "Realized PnL",
+      "unrealized": "Unrealized PnL",
+      "fees": "Fees paid",
+      "noFees": "None",
+      "method": "PnL uses the average cost: each sell is measured against the average entry at that moment. Fees are listed separately, not deducted.",
+      "allocation": "Where the money went",
+      "volume": "Monthly volume",
+      "refreshPrices": "Update prices",
+      "loadingPrices": "Loading prices…",
+      "pricesAt": "Binance prices at {{time}}, updated every 20 s",
+      "pricesFailed": "Could not load Binance prices.",
+      "pricesHint": "Prices load automatically and update every 20 s."
+    },
+    "assets": {
+      "heading": "Assets",
+      "search": "Search by coin",
+      "pair": "Pair",
+      "position": "Position",
+      "avgPrice": "Avg entry",
+      "price": "Current price",
+      "invested": "Invested",
+      "trades": "Trades",
+      "realized": "Realized",
+      "unrealized": "Unrealized",
+      "empty": "No coin matches “{{query}}”.",
+      "sortBy": "Sort by {{column}}",
+      "open": "Open details for {{pair}}"
+    },
+    "metrics": {
+      "bought": "Bought",
+      "sold": "Sold",
+      "position": "Position now",
+      "avgPrice": "Average entry",
+      "costBasis": "Cost of position",
+      "invested": "Invested",
+      "received": "Received",
+      "realized": "Realized PnL",
+      "unrealized": "Unrealized PnL",
+      "fees": "Fees",
+      "first": "First trade",
+      "last": "Last trade",
+      "avgBuy": "Average buy",
+      "largestBuy": "Largest buy",
+      "bestSell": "Best sell",
+      "worstSell": "Worst sell",
+      "trades": "{{buys}} buys · {{sells}} sells",
+      "at": "at {{price}}",
+      "flat": "Flat",
+      "unmatched": "{{qty}} {{asset}} were sold beyond the buys in this file — for example coins that arrived by deposit. Their cost is unknown, so they are left out of the PnL."
+    },
+    "detail": {
+      "heading": "{{pair}} in detail",
+      "close": "Back to all assets",
+      "prices": "Trade prices",
+      "position": "Position over time",
+      "average": "Average entry over time",
+      "history": "Trade history"
+    },
+    "table": {
+      "date": "Date",
+      "side": "Side",
+      "price": "Price",
+      "qty": "Amount",
+      "total": "Total",
+      "fee": "Fee",
+      "all": "All",
+      "period": "Period",
+      "periods": {
+        "all": "All time",
+        "d7": "7 days",
+        "d30": "30 days",
+        "d90": "90 days",
+        "d365": "1 year"
+      },
+      "empty": "No trades match these filters.",
+      "showMore": "Show {{count}} more",
+      "count_one": "{{shown}} of {{count}} trade",
+      "count_other": "{{shown}} of {{count}} trades"
+    },
+    "side": {
+      "buy": "Buy",
+      "sell": "Sell"
+    },
+    "charts": {
+      "other": "Other",
+      "avgLine": "Average entry {{price}}",
+      "flat": "Flat (no position)",
+      "spent": "Spent",
+      "coins": "Coins bought",
+      "share": "Share",
+      "volumeAxis": "Volume, {{unit}}",
+      "priceAxis": "Price, {{unit}}",
+      "amountAxis": "Amount, {{unit}}"
+    },
+    "toast": {
+      "reading": "Reading {{name}}…",
+      "skipped_one": "{{count}} row was skipped; see the list on the page.",
+      "skipped_other": "{{count}} rows were skipped; see the list on the page.",
+      "reset": "Imported trades deleted."
+    }
   }
 }
