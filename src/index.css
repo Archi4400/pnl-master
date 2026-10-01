@@ -51,6 +51,34 @@
      lime, which keeps the brand hue and clears 4.5:1 under cream. */
   --color-marker: var(--marker);
 
+  /* Chart series, in a fixed categorical order that passes the colour-blind
+     separation checks in both themes (dataviz reference palette). Assign in
+     order, never cycled: past the last slot, fold the rest into "other". */
+  --color-chart-1: var(--chart-1);
+  /* Buy bars in Monthly volume: the deep brand green in both themes. Raw lime
+     reads as a highlight rather than data on the dark ground. */
+  --color-chart-buy: var(--chart-buy);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-other: var(--chart-other);
+
+  /* "Where the money went": muted, earthy hues that sit with the lime, ink and
+     cream instead of competing with them. Same order in both themes so a coin
+     keeps its hue; each theme re-steps lightness for its ground. Validated
+     (dataviz validate_palette.js) on --surface-raised: lightness band, chroma
+     floor, adjacent CVD ΔE ≥ 11.8, normal-vision ΔE ≥ 18.1, contrast ≥ 3:1. */
+  --color-alloc-1: var(--alloc-1);
+  --color-alloc-2: var(--alloc-2);
+  --color-alloc-3: var(--alloc-3);
+  --color-alloc-4: var(--alloc-4);
+  --color-alloc-5: var(--alloc-5);
+  --color-alloc-6: var(--alloc-6);
+  --color-alloc-7: var(--alloc-7);
+
   --radius-card: 24px;
   --radius-brand: 22px;
 
@@ -80,6 +108,22 @@
   --loss-invert: #ff6b4a;
   --accent-text: #5c7a00;
   --marker: #c6ff00;
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --chart-7: #4a3aa7;
+  --chart-other: #8a867b;
+  --alloc-1: #008300; /* moss */
+  --alloc-2: #a06193; /* plum */
+  --alloc-3: #83600a; /* ochre */
+  --alloc-4: #467eb6; /* slate */
+  --alloc-5: #874124; /* terracotta */
+  --alloc-6: #158e77; /* sage */
+  --alloc-7: #893c3f; /* clay */
+  --chart-buy: #c6ff00; /* same as the light theme's --profit; not overridden in dark */
 }
 
 :root.dark {
@@ -97,6 +141,21 @@
   --loss-invert: #c7350f;
   --accent-text: #c6ff00;
   --marker: #5c7a00; /* 4.58:1 under cream text */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-7: #9085e9;
+  --chart-other: #7a776e;
+  --alloc-1: #61792f; /* moss */
+  --alloc-2: #ba79ac; /* plum */
+  --alloc-3: #8e6714; /* ochre */
+  --alloc-4: #5e97d0; /* slate */
+  --alloc-5: #a1583b; /* terracotta */
+  --alloc-6: #3aa78e; /* sage */
+  --alloc-7: #a35355; /* clay */
 }
 
 @keyframes rise {
@@ -174,5 +233,63 @@ input[type='number'] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* react-toastify, mapped onto the site's tokens. The container always uses the
+   library's light theme; because these variables point at our semantic
+   colours, the toasts follow the site's own light/dark switch.
+   :root:root outranks the library's own :root block, which it injects after
+   this stylesheet and would otherwise win. */
+:root:root {
+  --toastify-color-light: var(--surface-raised);
+  --toastify-text-color-light: var(--content);
+  --toastify-color-progress-light: var(--color-lime);
+  --toastify-color-success: var(--profit);
+  --toastify-color-error: var(--loss);
+  --toastify-color-info: var(--content-muted);
+  --toastify-color-progress-success: var(--profit);
+  --toastify-color-progress-error: var(--loss);
+  --toastify-color-progress-info: var(--content-muted);
+  --toastify-font-family: var(--font-sans);
+  --toastify-toast-bd-radius: 16px;
+  --toastify-toast-min-height: 56px;
+  /* Clear the sticky header (~64px) so a top-centre toast never covers it. */
+  --toastify-toast-top: calc(env(safe-area-inset-top, 0px) + 76px);
+}
+
+.pnl-toast {
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 48px -18px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  /* Keeps the progress bar inside the rounded corners. */
+  overflow: hidden;
+}
+
+/* The library draws the close button black at 30%, invisible on the dark theme. */
+.pnl-toast .Toastify__close-button {
+  color: var(--content);
+  opacity: 0.5;
+}
+
+.pnl-toast .Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/*
+ * On phones the library pins toasts edge to edge at the very top, over the
+ * header. Keep them floating below it, with the page gutter on both sides.
+ */
+@media only screen and (max-width: 480px) {
+  :root .Toastify__toast-container--top-center {
+    top: var(--toastify-toast-top);
+    left: 0;
+    width: 100vw;
+    padding-inline: 16px;
+  }
+
+  :root .Toastify__toast.pnl-toast {
+    margin-bottom: 8px;
+    border-radius: var(--toastify-toast-bd-radius);
   }
 }

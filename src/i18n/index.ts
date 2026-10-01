@@ -28,4 +28,12 @@ void i18n
     },
   })
 
+// Keep <html lang> in step with the interface language: screen readers pick
+// their voice from it, and browsers their hyphenation and number formatting.
+function syncDocumentLanguage(language: string | undefined) {
+  if (language) document.documentElement.lang = language
+}
+syncDocumentLanguage(i18n.resolvedLanguage)
+i18n.on('languageChanged', () => syncDocumentLanguage(i18n.resolvedLanguage))
+
 export default i18n

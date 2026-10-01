@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { notify } from '@/lib/notify'
 
 import { shareUrl, type Snapshot } from './snapshot'
 
@@ -43,7 +44,10 @@ export function ShareButton({ snapshot }: { snapshot: Snapshot }) {
   }, [state])
 
   const copy = async (text: string) => {
-    setState((await copyText(text)) ? 'copied' : 'failed')
+    const ok = await copyText(text)
+    setState(ok ? 'copied' : 'failed')
+    if (ok) notify.success(t('share.copiedToast'))
+    else notify.info({ title: t('share.copyFailedToast'), body: t('share.copyManually') })
   }
 
   const share = () => {

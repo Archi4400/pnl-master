@@ -4,11 +4,12 @@ import { Popover } from 'radix-ui'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { formatPrice } from '@/lib/number'
 import { cn } from '@/lib/utils'
 
 import { POPULAR_ASSETS, QUOTE_ASSET } from './binance'
 import { CoinIcon } from './coin-icon'
-import { changeTone, formatChange, formatPrice } from './format'
+import { changeTone, formatChange } from './format'
 import { orderAssets } from './search'
 import { useStats, useStatsBatches, useUsdtPrices } from './use-market'
 

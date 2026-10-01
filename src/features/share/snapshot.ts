@@ -1,6 +1,6 @@
-import type { FuturesInputs } from '@/features/calculator/futures-state'
-import { parseNumber, sanitizeNumberInput } from '@/features/calculator/math'
+import type { FuturesInputs } from '@/features/futures/futures-state'
 import type { SpotInputs } from '@/features/spot/spot-state'
+import { parseNumber, sanitizeNumberInput } from '@/lib/number'
 
 /**
  * One calculation as data: which calculator, which coin, and the inputs that

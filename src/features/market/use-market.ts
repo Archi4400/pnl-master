@@ -1,6 +1,13 @@
 import { queryOptions, useQueries, useQuery } from '@tanstack/react-query'
 
-import { fetchStats, fetchStatsBatch, fetchUsdtPrices, type CoinStats } from './binance'
+import {
+  POPULAR_ASSETS,
+  fetchAllPrices,
+  fetchStats,
+  fetchStatsBatch,
+  fetchUsdtPrices,
+  type CoinStats,
+} from './binance'
 
 /** How often a selected coin's price refreshes while the tab is visible. */
 const PRICE_REFRESH_MS = 10_000
@@ -55,5 +62,39 @@ export function useStatsBatches(batches: readonly (readonly string[])[]) {
       }
       return merged
     },
+  })
+}
+
+/** How often the journal re-prices open positions while it shows imported trades. */
+export const ALL_PRICES_REFRESH_MS = 20_000
+
+/**
+ * Every pair's last price by symbol, for pricing a whole imported portfolio at
+ * once. Runs only while `enabled` (the journal has trades to price), then
+ * refreshes every 20 s; TanStack Query pauses that while the tab is hidden.
+ */
+export function useAllPrices(enabled: boolean) {
+  return useQuery({
+    queryKey: ['binance', 'all-prices'],
+    queryFn: ({ signal }) => fetchAllPrices(signal),
+    enabled,
+    refetchInterval: ALL_PRICES_REFRESH_MS,
+    staleTime: ALL_PRICES_REFRESH_MS / 2,
+  })
+}
+
+/** How often the home-page ticker refreshes; it is ambient, not a trading screen. */
+const TICKER_REFRESH_MS = 30_000
+
+/**
+ * 24h stats for the popular coins, for the scrolling ticker: one ~6 KB batch
+ * request for all twenty, refreshed while the tab is visible.
+ */
+export function useTickerStats() {
+  return useQuery({
+    queryKey: ['binance', 'ticker', POPULAR_ASSETS.join(',')],
+    queryFn: ({ signal }) => fetchStatsBatch(POPULAR_ASSETS, signal),
+    refetchInterval: TICKER_REFRESH_MS,
+    staleTime: TICKER_REFRESH_MS / 2,
   })
 }

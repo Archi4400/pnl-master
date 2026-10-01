@@ -1,45 +1,16 @@
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { CalculatorLayout, InputCard, ResultSlab } from '@/components/ui/calculator-card'
 import { Hint } from '@/components/ui/hint'
 import { NumberField } from '@/components/ui/number-field'
 import { SectionLabel } from '@/components/ui/section-label'
+import { SignedValue } from '@/components/ui/signed-value'
 import { SpecRow } from '@/components/ui/spec-row'
-import { formatNumber } from '@/features/calculator/math'
-import { formatPrice } from '@/features/market/format'
 import { MarketPriceButton } from '@/features/market/market-price-button'
+import { useFormat } from '@/hooks/use-format'
+import { NO_VALUE } from '@/lib/number'
 
 import type { SpotCalculatorState } from './use-spot-calculator'
-
-const DASH = '—'
-
-/**
- * Signed number, coloured for the inverted slab.
- *
- * `lowerIsBetter` flips the colours for the average-price shift: a holder wants
- * the average to fall, so a negative shift is the good outcome there.
- */
-function Signed({
-  value,
-  suffix = '',
-  decimals = 2,
-  lowerIsBetter = false,
-}: {
-  value: number
-  suffix?: string
-  decimals?: number
-  lowerIsBetter?: boolean
-}) {
-  const sign = value > 0 ? '+' : ''
-  const good = lowerIsBetter ? value < 0 : value > 0
-  return (
-    <span className={value === 0 ? undefined : good ? 'text-profit-invert' : 'text-loss-invert'}>
-      {sign}
-      {formatNumber(value, decimals)}
-      {suffix}
-    </span>
-  )
-}
 
 type SpotCalculatorProps = {
   /** State lives in the page, so saved calculations and links can load into it. */
@@ -51,24 +22,14 @@ type SpotCalculatorProps = {
 }
 
 export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const format = useFormat()
   const { values, setField, reset, purchase, before, after, saleAfter, saleBefore } = calc
-
-  const rowClass = 'border-content-invert/15'
+  const assetUnit = asset ?? t('units.asset')
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <div className="rounded-card border-line bg-surface-raised flex flex-col gap-7 border p-5 sm:p-7">
-        <div className="flex items-center justify-between gap-2">
-          <SectionLabel index="01">{t('spot.holdingHeading')}</SectionLabel>
-          <div className="-mr-2 flex items-center">
-            {actions}
-            <Button variant="ghost" size="sm" onClick={reset}>
-              {t('calculator.reset')}
-            </Button>
-          </div>
-        </div>
-
+    <CalculatorLayout>
+      <InputCard index="01" title={t('spot.holdingHeading')} actions={actions} onReset={reset}>
         {/* The price comes first because it is what links the two amounts
             below: type either one and the other follows through it. */}
         <div className="grid gap-5 sm:grid-cols-2">
@@ -87,7 +48,7 @@ export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
             tooltip={t('spot.tips.quantity')}
             value={values.quantity}
             onValueChange={(next) => setField('quantity', next)}
-            suffix={asset ?? t('units.asset')}
+            suffix={assetUnit}
           />
           <NumberField
             id="spot-invested"
@@ -120,7 +81,7 @@ export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
               tooltip={t('spot.tips.buyQuantity')}
               value={values.buyQuantity}
               onValueChange={(next) => setField('buyQuantity', next)}
-              suffix={asset ?? t('units.asset')}
+              suffix={assetUnit}
             />
             <NumberField
               id="spot-buy-cost"
@@ -150,13 +111,9 @@ export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
             }
           />
         </div>
-      </div>
+      </InputCard>
 
-      <div className="rounded-card bg-surface-invert text-content-invert flex flex-col gap-5 p-5 sm:p-7">
-        <SectionLabel index="03" tone="invert" className="text-content-invert/55">
-          {t('spot.resultHeading')}
-        </SectionLabel>
-
+      <ResultSlab index="03" title={t('spot.resultHeading')} footnote={t('spot.disclaimer')}>
         {/* The headline number: where the average lands after the buy. */}
         <div className="flex flex-col gap-1">
           <span className="text-content-invert/55 flex items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] uppercase">
@@ -164,18 +121,18 @@ export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
             <Hint label={t('spot.newAverage')}>{t('spot.tips.newAverage')}</Hint>
           </span>
           <span className="text-4xl font-bold tabular-nums sm:text-5xl">
-            {after ? formatPrice(after.averagePrice, i18n.resolvedLanguage) : DASH}
+            {after ? format.price(after.averagePrice) : NO_VALUE}
           </span>
           <span className="text-content-invert/70 text-sm">
             {before
-              ? t('spot.wasAverage', {
-                  price: formatPrice(before.averagePrice, i18n.resolvedLanguage),
-                })
+              ? t('spot.wasAverage', { price: format.price(before.averagePrice) })
               : t('spot.noHolding')}
             {after?.averageShiftPct != null && after.averageShiftPct !== 0 ? (
               <>
                 {' · '}
-                <Signed value={after.averageShiftPct} suffix="%" lowerIsBetter />
+                <SignedValue value={after.averageShiftPct} surface="invert" lowerIsBetter>
+                  {format.percent(after.averageShiftPct)}
+                </SignedValue>
               </>
             ) : null}
           </span>
@@ -183,68 +140,76 @@ export function SpotCalculator({ calc, asset, actions }: SpotCalculatorProps) {
 
         <dl className="flex flex-col">
           <SpecRow
+            tone="invert"
             label={t('spot.totalQuantity')}
             tooltip={t('spot.tips.totalQuantity')}
-            value={after ? formatNumber(after.quantity, 8) : DASH}
+            value={after ? format.units(after.quantity) : NO_VALUE}
             note={
               after && purchase.quantity > 0
-                ? t('spot.totalQuantityNote', { quantity: formatNumber(purchase.quantity, 8) })
+                ? t('spot.totalQuantityNote', { quantity: format.units(purchase.quantity) })
                 : undefined
             }
-            className={rowClass}
           />
           <SpecRow
+            tone="invert"
             label={t('spot.totalCost')}
             tooltip={t('spot.tips.totalCost')}
-            value={after ? formatNumber(after.cost, 2) : DASH}
+            value={after ? format.amount(after.cost) : NO_VALUE}
             note={t('spot.totalCostNote')}
-            className={rowClass}
           />
           <SpecRow
+            tone="invert"
             label={t('spot.saleValue')}
             tooltip={t('spot.tips.saleValue')}
-            value={saleAfter ? formatNumber(saleAfter.value, 2) : DASH}
+            value={saleAfter ? format.amount(saleAfter.value) : NO_VALUE}
             note={t('spot.saleValueNote')}
-            className={rowClass}
           />
           <SpecRow
+            tone="invert"
             label={t('spot.pnl')}
             tooltip={t('spot.tips.pnl')}
             value={
               saleAfter ? (
-                <span className="text-xl font-semibold">
-                  <Signed value={saleAfter.pnl} />
-                </span>
+                <SignedValue
+                  value={saleAfter.pnl}
+                  surface="invert"
+                  className="text-xl font-semibold"
+                >
+                  {format.signed(saleAfter.pnl)}
+                </SignedValue>
               ) : (
-                DASH
+                NO_VALUE
               )
             }
             note={
               saleAfter?.roiPct != null
-                ? `${saleAfter.roiPct > 0 ? '+' : ''}${formatNumber(saleAfter.roiPct, 2)}% ${t('spot.pnlNote')}`
+                ? `${format.percent(saleAfter.roiPct)} ${t('spot.pnlNote')}`
                 : undefined
             }
-            className={rowClass}
           />
           <SpecRow
+            tone="invert"
             label={t('spot.pnlWithoutBuy')}
             tooltip={t('spot.tips.pnlWithoutBuy')}
-            value={saleBefore ? <Signed value={saleBefore.pnl} /> : DASH}
+            value={
+              saleBefore ? (
+                <SignedValue value={saleBefore.pnl} surface="invert">
+                  {format.signed(saleBefore.pnl)}
+                </SignedValue>
+              ) : (
+                NO_VALUE
+              )
+            }
             note={
               saleAfter && saleBefore
                 ? t('spot.pnlWithoutBuyNote', {
-                    delta: `${saleAfter.pnl - saleBefore.pnl >= 0 ? '+' : ''}${formatNumber(saleAfter.pnl - saleBefore.pnl, 2)}`,
+                    delta: format.signed(saleAfter.pnl - saleBefore.pnl),
                   })
                 : undefined
             }
-            className={rowClass}
           />
         </dl>
-
-        <p className="border-content-invert/15 text-content-invert/55 mt-auto border-t pt-4 text-xs leading-relaxed">
-          {t('spot.disclaimer')}
-        </p>
-      </div>
-    </div>
+      </ResultSlab>
+    </CalculatorLayout>
   )
 }

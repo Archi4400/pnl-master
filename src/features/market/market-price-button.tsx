@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 
+import { formatPrice } from '@/lib/number'
 import { cn } from '@/lib/utils'
 
-import { changeTone, formatChange, formatPrice, priceToField } from './format'
+import { changeTone, formatChange, priceToField } from './format'
 import { useStats } from './use-market'
 
 type MarketPriceButtonProps = {

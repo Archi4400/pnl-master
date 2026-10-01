@@ -1,17 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { changeTone, formatChange, formatPrice, priceToField } from './format'
-
-describe('formatPrice', () => {
-  it.each([
-    [83800.123, '83,800.12'],
-    [3.45678, '3.4568'],
-    [0.1234567, '0.1235'],
-    [0.00001234567, '0.00001235'],
-  ])('formats %p as %p', (price, expected) => {
-    expect(formatPrice(price, 'en')).toBe(expected)
-  })
-})
+import { changeTone, formatChange, priceToField } from './format'
 
 describe('priceToField', () => {
   it('writes a plain number the fields accept', () => {

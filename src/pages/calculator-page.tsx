@@ -1,22 +1,25 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
+
+import { isHomeSection, scrollToSection } from '@/app/sections'
 
 import { Marker } from '@/components/ui/marker'
-import { Marquee } from '@/components/ui/marquee'
 import { SectionLabel } from '@/components/ui/section-label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
-import { FuturesCalculator } from '@/features/calculator/futures-calculator'
-import { useCalculator } from '@/features/calculator/use-calculator'
+import { FuturesCalculator } from '@/features/futures/futures-calculator'
+import { useFuturesCalculator } from '@/features/futures/use-futures-calculator'
 import { InfoSection } from '@/features/info/info-section'
 import { AssetPicker } from '@/features/market/asset-picker'
+import { PriceTicker } from '@/features/market/price-ticker'
 import { useAsset } from '@/features/market/use-asset'
+import { NewsSection } from '@/features/news/news-section'
 import { SaveButton } from '@/features/saved/save-button'
 import { SavedList } from '@/features/saved/saved-list'
 import type { SavedEntry } from '@/features/saved/storage'
 import { ShareButton } from '@/features/share/share-button'
 import { decodeSnapshot, readMode, type Mode, type Snapshot } from '@/features/share/snapshot'
-import { useUrlSnapshot } from '@/features/share/use-url-snapshot'
+import { recallLastQuery, useUrlSnapshot } from '@/features/share/use-url-snapshot'
 import { SpotCalculator } from '@/features/spot/spot-calculator'
 import { useSpotCalculator } from '@/features/spot/use-spot-calculator'
 
@@ -26,15 +29,28 @@ export function CalculatorPage() {
 
   // The URL is read once, on first render, to seed everything; after that it
   // only mirrors the state (useUrlSnapshot below), so it can never fight it.
-  const [fromLink] = useState(() => decodeSnapshot(searchParams))
+  // A bare "/" (back from another page) falls back to this tab's last numbers.
+  const [fromLink] = useState(
+    () => decodeSnapshot(searchParams) ?? decodeSnapshot(recallLastQuery()),
+  )
   const [mode, setMode] = useState<Mode>(() => fromLink?.mode ?? readMode(searchParams))
   const [asset, setAsset] = useAsset(fromLink?.asset)
-  const futures = useCalculator(fromLink?.mode === 'futures' ? fromLink.futures : undefined)
+  const futures = useFuturesCalculator(fromLink?.mode === 'futures' ? fromLink.futures : undefined)
   const spot = useSpotCalculator(fromLink?.mode === 'spot' ? fromLink.spot : undefined)
 
   const futuresSnapshot: Snapshot = { mode: 'futures', asset, futures: futures.inputs }
   const spotSnapshot: Snapshot = { mode: 'spot', asset, spot: spot.inputs }
   useUrlSnapshot(mode === 'spot' ? spotSnapshot : futuresSnapshot)
+
+  // Arriving from another page via a menu link (/#saved): jump to the section
+  // once it has rendered. The URL snapshot rewrite drops the hash afterwards.
+  const { hash } = useLocation()
+  useEffect(() => {
+    const id = hash.slice(1)
+    if (!isHomeSection(id)) return
+    const frame = requestAnimationFrame(() => scrollToSection(id, 'auto'))
+    return () => cancelAnimationFrame(frame)
+  }, [hash])
 
   const toolRef = useRef<HTMLElement>(null)
   const loadSaved = ({ snapshot }: SavedEntry) => {
@@ -50,14 +66,14 @@ export function CalculatorPage() {
 
   return (
     <div className="flex flex-col">
-      <section className="mx-auto w-full max-w-5xl px-5 pt-12 pb-10 sm:pt-20">
+      <section className="mx-auto w-full max-w-6xl px-5 pt-12 pb-10 sm:pt-20">
         <div className="animate-rise">
           <SectionLabel index="00">
             {t('calculator.eyebrow')} · {t(`mode.${mode}`)}
           </SectionLabel>
         </div>
 
-        <div className="mt-6 grid gap-x-12 gap-y-6 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <h1
             className="animate-rise text-[clamp(2.4rem,6vw,4.2rem)] leading-[0.98] font-medium tracking-[-0.035em] text-balance"
             style={{ animationDelay: '60ms' }}
@@ -77,7 +93,11 @@ export function CalculatorPage() {
 
       {/* The tool itself. scroll-mt clears the sticky header when a saved
           calculation scrolls back up to it. */}
-      <section ref={toolRef} className="mx-auto w-full max-w-5xl scroll-mt-24 px-5 pb-16">
+      <section
+        ref={toolRef}
+        id="calculator"
+        className="mx-auto w-full max-w-6xl scroll-mt-24 px-5 pb-16"
+      >
         <div className="animate-rise flex flex-col gap-6" style={{ animationDelay: '180ms' }}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <SegmentedControl
@@ -123,11 +143,12 @@ export function CalculatorPage() {
 
       <SavedList onLoad={loadSaved} />
 
-      <Marquee
-        items={[t('marquee.one'), t('marquee.two'), t('marquee.three'), t('marquee.four')]}
-      />
+      <PriceTicker />
 
       <InfoSection />
+
+      {/* Last before the footer: context to read once the maths is done. */}
+      <NewsSection />
     </div>
   )
 }

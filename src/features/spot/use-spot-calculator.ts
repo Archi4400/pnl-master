@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { parseNumber } from '@/features/calculator/math'
+import { parseNumber } from '@/lib/number'
 
 import { averageAfterPurchase, saleOutcome } from './math'
 import {

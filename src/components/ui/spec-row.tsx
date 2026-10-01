@@ -6,18 +6,28 @@ type SpecRowProps = {
   label: string
   value: React.ReactNode
   /** Optional second line under the value. */
-  note?: string
+  note?: React.ReactNode
   /** Longer explanation behind a "?" next to the label. */
   tooltip?: string
+  /** "invert" for rows on the inverted results slab. */
+  tone?: 'default' | 'invert'
   className?: string
 }
 
 /** Monospace label left, value right, hairline above — the reference's spec list. */
-export function SpecRow({ label, value, note, tooltip, className }: SpecRowProps) {
+export function SpecRow({
+  label,
+  value,
+  note,
+  tooltip,
+  tone = 'default',
+  className,
+}: SpecRowProps) {
   return (
     <div
       className={cn(
-        'border-line flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t py-3.5',
+        'flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t py-3.5',
+        tone === 'invert' ? 'border-content-invert/15' : 'border-line',
         className,
       )}
     >
