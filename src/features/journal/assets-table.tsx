@@ -14,16 +14,7 @@ import { formatMoney, formatMoneySigned, formatQty, formatUnitPrice } from './fo
 import { pairPrice, type PriceState } from './prices'
 import { unrealizedPct, unrealizedPnl, type PairKey, type PairStats } from './stats'
 
-type SortKey =
-  | 'pair'
-  | 'position'
-  | 'avgPrice'
-  | 'price'
-  | 'invested'
-  | 'trades'
-  | 'realized'
-  | 'unrealized'
-  | 'unrealizedPct'
+type SortKey = 'pair' | 'value' | 'price' | 'invested' | 'realized' | 'unrealized'
 type Sort = { key: SortKey; dir: 'asc' | 'desc' }
 
 /**
@@ -36,6 +27,8 @@ type Row = {
   pair: PairStats
   /** Live market price; undefined until prices load or for unlisted pairs. */
   price: number | undefined
+  /** What the open position is worth now, in the quote; null without a price. */
+  value: number | null
   unrealized: number | null
   unrealizedPct: number | null
 }
@@ -45,22 +38,17 @@ function sortValue(row: Row, key: SortKey): number | string | null {
   switch (key) {
     case 'pair':
       return row.pair.base
-    case 'position':
-      return row.pair.position.toNumber()
-    case 'avgPrice':
-      return row.pair.avgPrice?.toNumber() ?? null
+    // Units of different coins do not compare; their worth in the quote does.
+    case 'value':
+      return row.value
     case 'price':
       return row.price ?? null
     case 'invested':
       return row.pair.invested.toNumber()
-    case 'trades':
-      return row.pair.trades.length
     case 'realized':
       return row.pair.realizedPnl.toNumber()
     case 'unrealized':
       return row.unrealized
-    case 'unrealizedPct':
-      return row.unrealizedPct
   }
 }
 
@@ -71,6 +59,18 @@ function compareRows(a: Row, b: Row, sort: Sort): number {
   const order = typeof x === 'string' ? x.localeCompare(y as string) : x - (y as number)
   return sort.dir === 'asc' ? order : -order
 }
+
+/** Two stacked figures in one cell, Binance-style: the main one, then a muted one. */
+function Stacked({ top, bottom }: { top: React.ReactNode; bottom: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <span>{top}</span>
+      <span className="text-content-faint text-xs">{bottom}</span>
+    </div>
+  )
+}
+
+const FAINT_DASH = <span className="text-content-faint">{NO_VALUE}</span>
 
 export function AssetsTable({
   pairs,
@@ -97,9 +97,15 @@ export function AssetsTable({
       .filter((pair) => !q || pair.base.includes(q) || pair.key.includes(q))
       .map((pair) => {
         const price = pairPrice(priceState.prices, pair)
+        const value = pair.position.eq(0)
+          ? 0
+          : price === undefined
+            ? null
+            : pair.position.times(price).toNumber()
         return {
           pair,
           price,
+          value,
           unrealized: unrealizedPnl(pair, price)?.toNumber() ?? null,
           unrealizedPct: unrealizedPct(pair, price)?.toNumber() ?? null,
         }
@@ -109,14 +115,11 @@ export function AssetsTable({
 
   const allColumns: { key: SortKey; label: string; align: 'left' | 'right' }[] = [
     { key: 'pair', label: t('journal.assets.pair'), align: 'left' },
-    { key: 'position', label: t('journal.assets.position'), align: 'right' },
-    { key: 'avgPrice', label: `${t('journal.assets.avgPrice')}, ${quote}`, align: 'right' },
-    { key: 'price', label: `${t('journal.assets.price')}, ${quote}`, align: 'right' },
+    { key: 'value', label: t('journal.assets.amount'), align: 'right' },
+    { key: 'price', label: `${t('journal.assets.priceAvg')}, ${quote}`, align: 'right' },
     { key: 'invested', label: `${t('journal.assets.invested')}, ${quote}`, align: 'right' },
-    { key: 'trades', label: t('journal.assets.trades'), align: 'right' },
     { key: 'realized', label: `${t('journal.assets.realized')}, ${quote}`, align: 'right' },
-    { key: 'unrealized', label: `${t('journal.assets.unrealized')}, ${quote}`, align: 'right' },
-    { key: 'unrealizedPct', label: `${t('journal.assets.unrealized')}, %`, align: 'right' },
+    { key: 'unrealized', label: `${t('journal.assets.unrealizedPnl')}, ${quote}`, align: 'right' },
   ]
   const columns = SHOW_REALIZED
     ? allColumns
@@ -151,7 +154,7 @@ export function AssetsTable({
           horizontal scroll, widening the whole page on phones. */}
       <div className="rounded-card border-line relative overflow-x-auto border">
         {/* nowrap: a figure or header split over two lines is harder to scan than a scroll. */}
-        <table className="w-full min-w-[1000px] text-sm whitespace-nowrap">
+        <table className="w-full min-w-[820px] text-sm whitespace-nowrap">
           <thead className="bg-surface-raised">
             <tr>
               {columns.map((column) => (
@@ -198,7 +201,7 @@ export function AssetsTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ pair, price, unrealized, unrealizedPct }) => (
+            {rows.map(({ pair, price, value, unrealized, unrealizedPct }) => (
               <tr
                 key={pair.key}
                 className={cn(
@@ -222,10 +225,12 @@ export function AssetsTable({
                       aria-current={selected === pair.key ? 'true' : undefined}
                       className="flex cursor-pointer items-center gap-2.5 text-left after:absolute after:inset-0 focus-visible:outline-none"
                     >
-                      <CoinIcon symbol={pair.base} size={22} />
-                      <span className="font-semibold">{pair.base}</span>
-                      <span className="text-content-faint font-mono text-[11px]">
-                        /{pair.quote}
+                      <CoinIcon symbol={pair.base} size={28} />
+                      <span className="flex flex-col">
+                        <span className="font-semibold">{pair.base}</span>
+                        <span className="text-content-faint font-mono text-[11px]">
+                          /{pair.quote}
+                        </span>
                       </span>
                     </button>
                   </Tooltip>
@@ -234,26 +239,33 @@ export function AssetsTable({
                   {pair.position.eq(0) ? (
                     <span className="text-content-faint">{t('journal.metrics.flat')}</span>
                   ) : (
-                    <>
-                      {formatQty(pair.position, locale)}{' '}
-                      <span className="text-content-faint text-xs">{pair.base}</span>
-                    </>
+                    <Stacked
+                      top={
+                        <>
+                          {formatQty(pair.position, locale)}{' '}
+                          <span className="text-content-faint text-xs">{pair.base}</span>
+                        </>
+                      }
+                      bottom={
+                        value === null
+                          ? NO_VALUE
+                          : `${formatMoney(value, pair.quote, locale)} ${pair.quote}`
+                      }
+                    />
                   )}
                 </td>
                 <td className="px-2.5 py-3 text-right tabular-nums">
-                  {pair.avgPrice ? formatUnitPrice(pair.avgPrice, locale) : NO_VALUE}
+                  <Stacked
+                    top={price === undefined ? FAINT_DASH : formatUnitPrice(price, locale)}
+                    bottom={pair.avgPrice ? formatUnitPrice(pair.avgPrice, locale) : NO_VALUE}
+                  />
                 </td>
                 <td className="px-2.5 py-3 text-right tabular-nums">
-                  {price === undefined ? (
-                    <span className="text-content-faint">{NO_VALUE}</span>
-                  ) : (
-                    formatUnitPrice(price, locale)
-                  )}
+                  <Stacked
+                    top={formatMoney(pair.invested, pair.quote, locale)}
+                    bottom={t('journal.assets.tradeCount', { count: pair.trades.length })}
+                  />
                 </td>
-                <td className="px-2.5 py-3 text-right tabular-nums">
-                  {formatMoney(pair.invested, pair.quote, locale)}
-                </td>
-                <td className="px-2.5 py-3 text-right tabular-nums">{pair.trades.length}</td>
                 {SHOW_REALIZED ? (
                   <td className="px-2.5 py-3 text-right tabular-nums">
                     <SignedValue value={pair.realizedPnl.toNumber()}>
@@ -262,21 +274,21 @@ export function AssetsTable({
                   </td>
                 ) : null}
                 <td className="px-2.5 py-3 text-right tabular-nums">
-                  {unrealized === null ? (
-                    <span className="text-content-faint">{NO_VALUE}</span>
+                  {unrealized === null || unrealizedPct === null ? (
+                    FAINT_DASH
                   ) : (
-                    <SignedValue value={unrealized}>
-                      {formatMoneySigned(unrealized, pair.quote, locale)}
-                    </SignedValue>
-                  )}
-                </td>
-                <td className="px-2.5 py-3 text-right tabular-nums">
-                  {unrealizedPct === null ? (
-                    <span className="text-content-faint">{NO_VALUE}</span>
-                  ) : (
-                    <SignedValue value={unrealizedPct}>
-                      {formatSigned(unrealizedPct, locale)}%
-                    </SignedValue>
+                    <Stacked
+                      top={
+                        <SignedValue value={unrealized}>
+                          {formatMoneySigned(unrealized, pair.quote, locale)}
+                        </SignedValue>
+                      }
+                      bottom={
+                        <SignedValue value={unrealizedPct}>
+                          {formatSigned(unrealizedPct, locale)}%
+                        </SignedValue>
+                      }
+                    />
                   )}
                 </td>
                 <td className="px-2.5 py-3 text-center">
