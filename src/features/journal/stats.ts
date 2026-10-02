@@ -28,6 +28,8 @@ export type TimelinePoint = {
   side: Side
   price: number
   qty: number
+  /** What the trade cost or brought in, in the quote asset, as the file reports it. */
+  total: number
   /** Position right after this trade. */
   position: number
   /** Average entry after this trade; null while flat. */
@@ -139,6 +141,7 @@ export function computePairStats(trades: readonly Trade[]): PairStats {
       side: trade.side,
       price: price.toNumber(),
       qty: qty.toNumber(),
+      total: total.toNumber(),
       position: position.toNumber(),
       avgPrice: avg?.toNumber() ?? null,
     })
@@ -302,4 +305,20 @@ export function unrealizedPct(pair: PairStats, price: number | undefined): Big |
   if (price === undefined || pair.avgPrice === null || pair.position.eq(0)) return null
   if (pair.avgPrice.eq(0)) return null
   return new Big(price).minus(pair.avgPrice).div(pair.avgPrice).times(100)
+}
+
+/**
+ * One trade measured against the market now. A buy gains when the price has
+ * risen since; a sell "gains" when it went for more than the coin is worth
+ * today. The percentage is against the trade's own price.
+ */
+export function tradePnl(
+  trade: Pick<Trade, 'side' | 'price' | 'qty'>,
+  price: number | undefined,
+): { pnl: Big; pct: Big } | null {
+  if (price === undefined) return null
+  const tradePrice = new Big(trade.price)
+  if (tradePrice.eq(0)) return null
+  const move = trade.side === 'buy' ? new Big(price).minus(tradePrice) : tradePrice.minus(price)
+  return { pnl: move.times(trade.qty), pct: move.div(tradePrice).times(100) }
 }

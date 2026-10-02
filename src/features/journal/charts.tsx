@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Area,
@@ -21,26 +22,24 @@ import {
 } from 'recharts'
 
 import { formatAmount } from '@/lib/number'
+import { cn } from '@/lib/utils'
 
 import type { Side } from './csv'
 import { formatDate, formatDateTime, formatMoney, formatQty, formatUnitPrice } from './format'
 import type { MonthVolume, TimelinePoint } from './stats'
 
 /*
- * Colour roles (see --color-chart-* in index.css; validated for colour-blind
- * separation in both themes):
- *   buy  = slot 1 (blue), sell = slot 2 (orange), always with ▲/▼ shapes too,
- *          since colour alone must never carry the meaning.
- *   Monthly volume is the exception: it uses the brand green/red by request.
- *   That pair fails the deuteranopia check, so there the ▲/▼ legend and the
- *   tooltip (and the stack order: buy below, sell on top) carry the meaning.
+ * Colour roles:
+ *   buy = brand lime (--color-chart-buy), sell = loss red, on every chart,
+ *   legend and tooltip that shows a side, so one colour means one side across
+ *   the journal. That pair fails the deuteranopia check, so the side is always
+ *   also carried by shape (▲ buy, ▼ sell), by the tooltip, and in stacks by
+ *   order (buy below, sell on top).
+ *   Single-series lines (position, average entry) use categorical slot 1.
  */
-const BUY = 'var(--color-chart-1)'
-const SELL = 'var(--color-chart-2)'
-
 type SidePalette = { buy: string; sell: string }
-const SIDE_COLORS: SidePalette = { buy: BUY, sell: SELL }
-const VOLUME_COLORS: SidePalette = { buy: 'var(--color-chart-buy)', sell: 'var(--color-loss)' }
+const SIDE_COLORS: SidePalette = { buy: 'var(--color-chart-buy)', sell: 'var(--color-loss)' }
+const LINE = 'var(--color-chart-1)'
 /** The allocation donut's earthy palette (--color-alloc-* in index.css), in fixed order. */
 const ALLOCATION = [
   'var(--color-alloc-1)',
@@ -98,11 +97,11 @@ function Swatch({ color, shape = 'square' }: { color: string; shape?: 'square' |
   )
 }
 
-function SideLabel({ side, colors = SIDE_COLORS }: { side: Side; colors?: SidePalette }) {
+function SideLabel({ side }: { side: Side }) {
   const { t } = useTranslation()
   return (
     <>
-      <Swatch color={colors[side]} shape={side === 'buy' ? 'up' : 'down'} />
+      <Swatch color={SIDE_COLORS[side]} shape={side === 'buy' ? 'up' : 'down'} />
       {t(`journal.side.${side}`)}
     </>
   )
@@ -117,14 +116,14 @@ function AxisCaption({ children }: { children: React.ReactNode }) {
 }
 
 /** Buy/sell legend, shared by the charts that use the pair. */
-export function BuySellLegend({ colors }: { colors?: SidePalette }) {
+export function BuySellLegend() {
   return (
     <ul className="text-content-muted flex flex-wrap gap-4 text-xs">
       <li className="flex items-center gap-1.5">
-        <SideLabel side="buy" colors={colors} />
+        <SideLabel side="buy" />
       </li>
       <li className="flex items-center gap-1.5">
-        <SideLabel side="sell" colors={colors} />
+        <SideLabel side="sell" />
       </li>
     </ul>
   )
@@ -294,12 +293,12 @@ function VolumeTooltip({ active, payload, label, quote }: TooltipProps<{ quote: 
       rows={[
         {
           key: 'buy',
-          label: <SideLabel side="buy" colors={VOLUME_COLORS} />,
+          label: <SideLabel side="buy" />,
           value: `${formatMoney(row.buy, quote, locale)} ${quote}`,
         },
         {
           key: 'sell',
-          label: <SideLabel side="sell" colors={VOLUME_COLORS} />,
+          label: <SideLabel side="sell" />,
           value: `${formatMoney(row.sell, quote, locale)} ${quote}`,
         },
       ]}
@@ -316,7 +315,7 @@ export function MonthlyVolumeChart({ data, quote }: { data: MonthVolume[]; quote
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <BuySellLegend colors={VOLUME_COLORS} />
+        <BuySellLegend />
       </div>
       <AxisCaption>{t('journal.charts.volumeAxis', { unit: quote })}</AxisCaption>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
@@ -345,7 +344,7 @@ export function MonthlyVolumeChart({ data, quote }: { data: MonthVolume[]; quote
           <Bar
             dataKey="buy"
             stackId="volume"
-            fill={VOLUME_COLORS.buy}
+            fill={SIDE_COLORS.buy}
             stroke={SURFACE}
             strokeWidth={2}
             isAnimationActive={false}
@@ -353,7 +352,7 @@ export function MonthlyVolumeChart({ data, quote }: { data: MonthVolume[]; quote
           <Bar
             dataKey="sell"
             stackId="volume"
-            fill={VOLUME_COLORS.sell}
+            fill={SIDE_COLORS.sell}
             stroke={SURFACE}
             strokeWidth={2}
             radius={[4, 4, 0, 0]}
@@ -386,11 +385,11 @@ function Triangle({
 }
 
 function BuyMarker(props: MarkerProps) {
-  return <Triangle cx={props.cx} cy={props.cy} fill={BUY} direction="up" />
+  return <Triangle cx={props.cx} cy={props.cy} fill={SIDE_COLORS.buy} direction="up" />
 }
 
 function SellMarker(props: MarkerProps) {
-  return <Triangle cx={props.cx} cy={props.cy} fill={SELL} direction="down" />
+  return <Triangle cx={props.cx} cy={props.cy} fill={SIDE_COLORS.sell} direction="down" />
 }
 
 function PriceTooltip({
@@ -417,6 +416,11 @@ function PriceTooltip({
           label: t('journal.table.price'),
           value: `${formatUnitPrice(point.price, locale)} ${quote}`,
         },
+        {
+          key: 'total',
+          label: t('journal.table.total'),
+          value: `${formatMoney(point.total, quote, locale)} ${quote}`,
+        },
       ]}
     />
   )
@@ -425,16 +429,21 @@ function PriceTooltip({
 export function PriceTimelineChart({
   timeline,
   avgPrice,
+  currentPrice,
   base,
   quote,
 }: {
   timeline: TimelinePoint[]
   avgPrice: number | null
+  /** Live market price; the line and its toggle appear once it has loaded. */
+  currentPrice: number | undefined
   base: string
   quote: string
 }) {
   const { t } = useTranslation()
   const locale = useLocale()
+  const [showCurrent, setShowCurrent] = useState(true)
+  const currentLine = showCurrent ? currentPrice : undefined
   const buys = timeline.filter((point) => point.side === 'buy')
   const sells = timeline.filter((point) => point.side === 'sell')
 
@@ -442,14 +451,40 @@ export function PriceTimelineChart({
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <BuySellLegend />
-        {avgPrice !== null ? (
-          <span className="text-content-muted flex items-center gap-1.5 text-xs">
-            <span className="border-content-muted w-4 border-t-2 border-dashed" aria-hidden />
-            {t('journal.charts.avgLine', {
-              price: `${formatUnitPrice(avgPrice, locale)} ${quote}`,
-            })}
-          </span>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {avgPrice !== null ? (
+            <span className="text-content-muted flex items-center gap-1.5 text-xs">
+              <span className="border-content-muted w-4 border-t-2 border-dashed" aria-hidden />
+              {t('journal.charts.avgLine', {
+                price: `${formatUnitPrice(avgPrice, locale)} ${quote}`,
+              })}
+            </span>
+          ) : null}
+          {currentPrice !== undefined ? (
+            // The legend entry doubles as the switch: press to hide or show the line.
+            <button
+              type="button"
+              aria-pressed={showCurrent}
+              onClick={() => setShowCurrent((on) => !on)}
+              className={cn(
+                'border-line hover:border-lime flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                'focus-visible:ring-lime/40 focus-visible:ring-4 focus-visible:outline-none',
+                showCurrent ? 'text-content' : 'text-content-faint',
+              )}
+            >
+              <span
+                className={cn(
+                  'w-4 border-t-2',
+                  showCurrent ? 'border-content' : 'border-content-faint',
+                )}
+                aria-hidden
+              />
+              {t('journal.charts.currentLine', {
+                price: `${formatUnitPrice(currentPrice, locale)} ${quote}`,
+              })}
+            </button>
+          ) : null}
+        </div>
       </div>
       <AxisCaption>{t('journal.charts.priceAxis', { unit: quote })}</AxisCaption>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
@@ -483,8 +518,23 @@ export function PriceTimelineChart({
               strokeWidth={1.5}
             />
           ) : null}
-          <Scatter data={buys} dataKey="price" isAnimationActive={false} shape={BuyMarker} />
-          <Scatter data={sells} dataKey="price" isAnimationActive={false} shape={SellMarker} />
+          {currentLine !== undefined ? (
+            <ReferenceLine
+              y={currentLine}
+              stroke="var(--color-content)"
+              strokeWidth={1.5}
+              // The market may sit outside every trade price; stretch the axis to show it.
+              ifOverflow="extendDomain"
+            />
+          ) : null}
+          {/* An empty Scatter falls back to the chart's own data and would mark
+              every trade with that side, so a side with no trades renders none. */}
+          {buys.length > 0 ? (
+            <Scatter data={buys} dataKey="price" isAnimationActive={false} shape={BuyMarker} />
+          ) : null}
+          {sells.length > 0 ? (
+            <Scatter data={sells} dataKey="price" isAnimationActive={false} shape={SellMarker} />
+          ) : null}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -534,9 +584,9 @@ export function PositionChart({ timeline, base }: { timeline: TimelinePoint[]; b
           <Area
             type="stepAfter"
             dataKey="position"
-            stroke={BUY}
+            stroke={LINE}
             strokeWidth={2}
-            fill={BUY}
+            fill={LINE}
             fillOpacity={0.15}
             isAnimationActive={false}
           />
@@ -591,7 +641,7 @@ export function AvgPriceChart({ timeline, quote }: { timeline: TimelinePoint[]; 
           <Line
             type="stepAfter"
             dataKey="avgPrice"
-            stroke={BUY}
+            stroke={LINE}
             strokeWidth={2}
             dot={false}
             connectNulls={false}

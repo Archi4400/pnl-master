@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import Big from 'big.js'
 
-import type { Trade } from './csv'
+import { parseTradesCsv, type Trade } from './csv'
 import {
   computeAllPairs,
   computePairStats,
   computePortfolio,
   quoteAssets,
+  tradePnl,
   unrealizedPct,
   unrealizedPnl,
 } from './stats'
@@ -193,5 +195,49 @@ describe('unrealizedPct', () => {
     expect(unrealizedPct(open, undefined)).toBeNull()
     const flat = computePairStats([trade('buy', '1', '100'), trade('sell', '1', '100')])
     expect(unrealizedPct(flat, 130)).toBeNull()
+  })
+})
+
+describe('average entry is weighted by quantity, not by trade count', () => {
+  // 100 USDT at 100,000 buys 0.001 BTC; 1,000 USDT at 50,000 buys 0.02 BTC.
+  // Average = 1,100 / 0.021 = 52,380.95…, not the plain mean of the prices (75,000).
+  const expected = new Big(1100).div('0.021')
+
+  it.each([
+    [
+      'Trade History',
+      `"Date(UTC)","Pair","Side","Price","Executed","Amount","Fee"
+"2024-03-01 10:00:00","BTCUSDT","BUY","100000","0.001BTC","100USDT","0USDT"
+"2024-03-02 10:00:00","BTCUSDT","BUY","50000","0.02BTC","1000USDT","0USDT"`,
+    ],
+    [
+      'Order History',
+      `Time,OrderNo,Pair,Type,Side,Order Price,Order Amount,Time,Executed,Average Price,Trading total,Status
+2024-03-01 10:00:00,1,BTCUSDT,Market,BUY,0,0.001BTC,2024-03-01 10:00:00,0.001BTC,100000,100USDT,FILLED
+2024-03-02 10:00:00,2,BTCUSDT,Market,BUY,0,0.02BTC,2024-03-02 10:00:00,0.02BTC,50000,1000USDT,FILLED`,
+    ],
+  ])('from a %s export', (_format, csv) => {
+    const [pair] = computeAllPairs(parseTradesCsv(csv).trades)
+    expect(pair?.position.toString()).toBe('0.021')
+    expect(pair?.avgPrice?.round(2).toString()).toBe(expected.round(2).toString())
+    expect(pair?.avgPrice?.round(2).toString()).toBe('52380.95')
+  })
+})
+
+describe('tradePnl', () => {
+  it('gains on a buy when the price has risen since', () => {
+    const result = tradePnl({ side: 'buy', price: '100', qty: '2' }, 130)
+    expect(result?.pnl.toString()).toBe('60')
+    expect(result?.pct.toString()).toBe('30')
+  })
+
+  it('gains on a sell when the price has fallen since', () => {
+    const result = tradePnl({ side: 'sell', price: '100', qty: '2' }, 75)
+    expect(result?.pnl.toString()).toBe('50')
+    expect(result?.pct.toString()).toBe('25')
+  })
+
+  it('is empty without a market price', () => {
+    expect(tradePnl({ side: 'buy', price: '100', qty: '1' }, undefined)).toBeNull()
   })
 })

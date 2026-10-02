@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { SignedValue } from '@/components/ui/signed-value'
+import { formatSigned } from '@/lib/number'
 import { cn } from '@/lib/utils'
 
 import { AllocationDonut, MonthlyVolumeChart } from './charts'
 import { formatMoney, formatMoneySigned, formatQty } from './format'
-import { Metric, Panel } from './metric'
+import { MetricGroup, Panel } from './metric'
 import { pairPrice, type PriceState } from './prices'
 import { computePortfolio, unrealizedPnl, type PairStats } from './stats'
 
@@ -41,51 +42,102 @@ export function PortfolioOverview({
   const locale = i18n.resolvedLanguage
   const portfolio = useMemo(() => computePortfolio(pairs, quote), [pairs, quote])
 
-  // Summed only over positions that have a market price.
+  // Summed only over positions that have a market price; null until prices load.
   const unrealized = priceState.prices
-    ? portfolio.pairs.reduce<number | null>((sum, pair) => {
+    ? portfolio.pairs.reduce((sum, pair) => {
         const pnl = unrealizedPnl(pair, pairPrice(priceState.prices, pair))
-        return pnl === null ? sum : (sum ?? 0) + pnl.toNumber()
-      }, null)
+        return pnl === null ? sum : sum + pnl.toNumber()
+      }, 0)
     : null
+  // Invested plus every gain and loss: received from sales plus what is still held, at market.
+  const equity =
+    unrealized === null
+      ? null
+      : portfolio.invested.plus(portfolio.realizedPnl).toNumber() + unrealized
+  // Equity against what went in: the colour and the return of the whole portfolio.
+  const totalPnl = equity === null ? null : equity - portfolio.invested.toNumber()
+  const totalReturn =
+    totalPnl === null || portfolio.invested.eq(0)
+      ? null
+      : (totalPnl / portfolio.invested.toNumber()) * 100
+  const buyCount = portfolio.pairs.reduce((sum, pair) => sum + pair.buyCount, 0)
+  const sellCount = portfolio.pairs.reduce((sum, pair) => sum + pair.sellCount, 0)
+  const pending = <span className="text-content-faint">—</span>
+  const money = (value: Big) => `${formatMoney(value, quote, locale)} ${quote}`
+  const signedMoney = (value: Big | number) => (
+    <SignedValue value={typeof value === 'number' ? value : value.toNumber()}>
+      {formatMoneySigned(value, quote, locale)} {quote}
+    </SignedValue>
+  )
 
   return (
     <div className="flex flex-col gap-4">
-      <dl className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <Metric label={t('journal.overview.trades')} value={portfolio.tradeCount} />
-        <Metric
-          label={t('journal.overview.invested')}
-          value={formatMoney(portfolio.invested, quote, locale)}
-          note={quote}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricGroup
+          rows={[
+            {
+              label: t('journal.overview.trades'),
+              value: portfolio.tradeCount,
+              note: (
+                <span className="flex flex-wrap gap-x-3">
+                  <span>
+                    <span className="text-chart-buy" aria-hidden>
+                      ▲{' '}
+                    </span>
+                    {t('journal.side.buy')} {buyCount}
+                  </span>
+                  <span>
+                    <span className="text-loss" aria-hidden>
+                      ▼{' '}
+                    </span>
+                    {t('journal.side.sell')} {sellCount}
+                  </span>
+                </span>
+              ),
+            },
+          ]}
         />
-        <Metric
-          label={t('journal.overview.received')}
-          value={formatMoney(portfolio.received, quote, locale)}
-          note={quote}
+        <MetricGroup
+          rows={[
+            { label: t('journal.overview.invested'), value: money(portfolio.invested) },
+            {
+              label: t('journal.overview.equity'),
+              value:
+                equity === null || totalPnl === null ? (
+                  pending
+                ) : (
+                  <SignedValue value={totalPnl}>
+                    {formatMoney(equity, quote, locale)} {quote}
+                  </SignedValue>
+                ),
+              note:
+                totalReturn === null || totalPnl === null ? undefined : (
+                  <SignedValue value={totalPnl}>
+                    {t('journal.overview.equityReturn', {
+                      percent: `${formatSigned(totalReturn, locale)}%`,
+                    })}
+                  </SignedValue>
+                ),
+              hint: t('journal.overview.equityHint'),
+            },
+          ]}
         />
-        <Metric
-          label={t('journal.overview.realized')}
-          value={
-            <SignedValue value={portfolio.realizedPnl.toNumber()}>
-              {formatMoneySigned(portfolio.realizedPnl, quote, locale)}
-            </SignedValue>
-          }
-          note={quote}
+        <MetricGroup
+          rows={[
+            { label: t('journal.overview.received'), value: money(portfolio.received) },
+            { label: t('journal.overview.realized'), value: signedMoney(portfolio.realizedPnl) },
+          ]}
         />
-        <Metric
-          label={t('journal.overview.unrealized')}
-          value={
-            unrealized === null ? (
-              <span className="text-content-faint">—</span>
-            ) : (
-              <SignedValue value={unrealized}>
-                {formatMoneySigned(unrealized, quote, locale)}
-              </SignedValue>
-            )
-          }
-          note={<PriceStatus priceState={priceState} />}
+        <MetricGroup
+          rows={[
+            {
+              label: t('journal.overview.unrealized'),
+              value: unrealized === null ? pending : signedMoney(unrealized),
+              note: <PriceStatus priceState={priceState} />,
+            },
+          ]}
         />
-      </dl>
+      </div>
 
       {/* A line of its own: fees come in many assets and would stretch a tile. */}
       <div className="border-line bg-surface-raised flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-2xl border px-4 py-3 text-sm">

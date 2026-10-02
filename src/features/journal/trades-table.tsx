@@ -3,11 +3,21 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Hint } from '@/components/ui/hint'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { SignedValue } from '@/components/ui/signed-value'
+import { formatSigned, NO_VALUE } from '@/lib/number'
 import { cn } from '@/lib/utils'
 
 import type { Side, Trade } from './csv'
-import { formatDateTime, formatMoney, formatQty, formatUnitPrice } from './format'
+import {
+  formatDateTime,
+  formatMoney,
+  formatMoneySigned,
+  formatQty,
+  formatUnitPrice,
+} from './format'
+import { tradePnl } from './stats'
 
 /** Rows added per "show more": enough to scan, few enough to render instantly. */
 const PAGE = 100
@@ -17,17 +27,20 @@ const PERIODS = ['all', 'd7', 'd30', 'd90', 'd365'] as const
 type Period = (typeof PERIODS)[number]
 const PERIOD_DAYS: Record<Exclude<Period, 'all'>, number> = { d7: 7, d30: 30, d90: 90, d365: 365 }
 
-type SortKey = 'time' | 'price' | 'qty' | 'total'
+type SortKey = 'time' | 'price' | 'qty' | 'pnl'
 type Sort = { key: SortKey; dir: 'asc' | 'desc' }
 
 export function TradesTable({
   trades,
   base,
   quote,
+  price,
 }: {
   trades: Trade[]
   base: string
   quote: string
+  /** Live market price; the PnL column fills in once it loads. */
+  price: number | undefined
 }) {
   const { t, i18n } = useTranslation()
   const locale = i18n.resolvedLanguage
@@ -41,21 +54,50 @@ export function TradesTable({
     // should still show its own "last 30 days" rather than nothing.
     const newest = trades.reduce((max, trade) => Math.max(max, trade.time), 0)
     const since = period === 'all' ? -Infinity : newest - PERIOD_DAYS[period] * DAY_MS
-    const value = (trade: Trade) => (sort.key === 'time' ? trade.time : Number(trade[sort.key]))
-    return trades
+    const withPnl = trades
       .filter((trade) => (side === 'all' || trade.side === side) && trade.time >= since)
-      .sort((a, b) => (sort.dir === 'asc' ? value(a) - value(b) : value(b) - value(a)))
-  }, [trades, side, period, sort])
+      .map((trade) => ({ trade, result: tradePnl(trade, price) }))
+    const value = ({ trade, result }: (typeof withPnl)[number]): number | null =>
+      sort.key === 'time'
+        ? trade.time
+        : sort.key === 'pnl'
+          ? (result?.pnl.toNumber() ?? null)
+          : Number(trade[sort.key])
+    return withPnl.sort((a, b) => {
+      const x = value(a)
+      const y = value(b)
+      // Rows without a figure (prices not loaded) sink to the bottom either way.
+      if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1
+      return sort.dir === 'asc' ? x - y : y - x
+    })
+  }, [trades, side, period, sort, price])
 
-  const columns: { key: SortKey | null; label: string; align: 'left' | 'right' }[] = [
+  const columns: {
+    key: SortKey | null
+    label: string
+    align: 'left' | 'right'
+    hint?: string
+  }[] = [
     { key: 'time', label: t('journal.table.date'), align: 'left' },
     { key: null, label: t('journal.table.side'), align: 'left' },
-    // One pair per table, so each unit is said once, in the header.
-    { key: 'price', label: `${t('journal.table.price')}, ${quote}`, align: 'right' },
-    { key: 'qty', label: `${t('journal.table.qty')}, ${base}`, align: 'right' },
-    { key: 'total', label: `${t('journal.table.total')}, ${quote}`, align: 'right' },
+    // Two figures per cell, Binance-style; the header names both, top first.
+    { key: 'price', label: `${t('journal.table.priceNow')}, ${quote}`, align: 'right' },
+    { key: 'qty', label: t('journal.table.qtyTotal'), align: 'right' },
+    {
+      key: 'pnl',
+      label: `${t('journal.table.pnl')}, ${quote}`,
+      align: 'right',
+      hint: t('journal.table.pnlHint'),
+    },
     { key: null, label: t('journal.table.fee'), align: 'right' },
   ]
+
+  const toggleSort = (key: SortKey) =>
+    setSort((current) =>
+      current.key === key
+        ? { key, dir: current.dir === 'asc' ? 'desc' : 'asc' }
+        : { key, dir: 'desc' },
+    )
 
   const changeFilter = (apply: () => void) => {
     apply()
@@ -72,11 +114,15 @@ export function TradesTable({
           className="w-full max-w-xs"
           options={[
             { value: 'all', ariaLabel: t('journal.table.all'), label: t('journal.table.all') },
-            { value: 'buy', ariaLabel: t('journal.side.buy'), label: `▲ ${t('journal.side.buy')}` },
+            {
+              value: 'buy',
+              ariaLabel: t('journal.side.buy'),
+              label: <SideFilterLabel side="buy" />,
+            },
             {
               value: 'sell',
               ariaLabel: t('journal.side.sell'),
-              label: `▼ ${t('journal.side.sell')}`,
+              label: <SideFilterLabel side="sell" />,
             },
           ]}
         />
@@ -104,7 +150,7 @@ export function TradesTable({
 
       {/* relative keeps absolutely positioned descendants inside the scroll. */}
       <div className="rounded-card border-line relative overflow-x-auto border">
-        <table className="w-full min-w-[680px] text-sm">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-surface-raised">
             <tr>
               {columns.map((column) => (
@@ -123,19 +169,26 @@ export function TradesTable({
                     column.align === 'right' && 'text-right',
                   )}
                 >
-                  {column.key ? (
+                  {column.hint ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      {column.key ? (
+                        <SortButton
+                          label={column.label}
+                          active={sort.key === column.key}
+                          dir={sort.dir}
+                          onClick={() => toggleSort(column.key as SortKey)}
+                        />
+                      ) : (
+                        column.label
+                      )}
+                      <Hint label={column.label}>{column.hint}</Hint>
+                    </span>
+                  ) : column.key ? (
                     <SortButton
                       label={column.label}
                       active={sort.key === column.key}
                       dir={sort.dir}
-                      onClick={() => {
-                        const key = column.key as SortKey
-                        setSort((current) =>
-                          current.key === key
-                            ? { key, dir: current.dir === 'asc' ? 'desc' : 'asc' }
-                            : { key, dir: 'desc' },
-                        )
-                      }}
+                      onClick={() => toggleSort(column.key as SortKey)}
                     />
                   ) : (
                     column.label
@@ -145,7 +198,7 @@ export function TradesTable({
             </tr>
           </thead>
           <tbody>
-            {rows.slice(0, limit).map((trade, index) => (
+            {rows.slice(0, limit).map(({ trade, result }, index) => (
               // Two fills can share every field; position in the sorted list
               // is the only stable identity they have.
               // oxlint-disable-next-line react/no-array-index-key
@@ -157,20 +210,46 @@ export function TradesTable({
                   {/* The arrow carries the chart colour; the word stays in ink. */}
                   <span
                     aria-hidden
-                    className={cn('mr-1.5', trade.side === 'buy' ? 'text-chart-1' : 'text-chart-2')}
+                    className={cn('mr-1.5', trade.side === 'buy' ? 'text-chart-buy' : 'text-loss')}
                   >
                     {trade.side === 'buy' ? '▲' : '▼'}
                   </span>
                   {t(`journal.side.${trade.side}`)}
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
-                  {formatUnitPrice(trade.price, locale)}
+                  <Stacked
+                    top={formatUnitPrice(trade.price, locale)}
+                    bottom={price === undefined ? NO_VALUE : formatUnitPrice(price, locale)}
+                  />
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
-                  {formatQty(trade.qty, locale)}
+                  <Stacked
+                    top={
+                      <>
+                        {formatQty(trade.qty, locale)}{' '}
+                        <span className="text-content-faint text-xs">{base}</span>
+                      </>
+                    }
+                    bottom={`${formatMoney(trade.total, quote, locale)} ${quote}`}
+                  />
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">
-                  {formatMoney(trade.total, quote, locale)}
+                  {result === null ? (
+                    <span className="text-content-faint">{NO_VALUE}</span>
+                  ) : (
+                    <Stacked
+                      top={
+                        <SignedValue value={result.pnl.toNumber()}>
+                          {formatMoneySigned(result.pnl, quote, locale)}
+                        </SignedValue>
+                      }
+                      bottom={
+                        <SignedValue value={result.pct.toNumber()}>
+                          {formatSigned(result.pct.toNumber(), locale)}%
+                        </SignedValue>
+                      }
+                    />
+                  )}
                 </td>
                 <td className="text-content-muted px-4 py-2.5 text-right whitespace-nowrap tabular-nums">
                   {formatQty(trade.fee, locale)} {trade.feeAsset}
@@ -196,6 +275,16 @@ export function TradesTable({
           {t('journal.table.showMore', { count: Math.min(PAGE, rows.length - limit) })}
         </Button>
       ) : null}
+    </div>
+  )
+}
+
+/** Two stacked figures in one cell: the main one, then a muted one. */
+function Stacked({ top, bottom }: { top: React.ReactNode; bottom: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-end gap-0.5 whitespace-nowrap">
+      <span>{top}</span>
+      <span className="text-content-faint text-xs">{bottom}</span>
     </div>
   )
 }
@@ -231,5 +320,29 @@ function SortButton({
         )
       ) : null}
     </button>
+  )
+}
+
+/**
+ * A side filter option: the coloured ▲/▼ the charts use, then the word. On
+ * the selected (lime) segment the glyph takes the label colour, since a lime
+ * arrow would vanish into it.
+ */
+function SideFilterLabel({ side }: { side: Side }) {
+  const { t } = useTranslation()
+  return (
+    <>
+      <span
+        aria-hidden
+        className={cn(
+          'mr-1',
+          side === 'buy' ? 'text-chart-buy' : 'text-loss',
+          'in-data-[state=on]:text-current',
+        )}
+      >
+        {side === 'buy' ? '▲' : '▼'}
+      </span>
+      {t(`journal.side.${side}`)}
+    </>
   )
 }
